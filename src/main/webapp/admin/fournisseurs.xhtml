@@ -1,0 +1,165 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:f="http://java.sun.com/jsf/core" xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:p="http://primefaces.org/ui"
+      xmlns:c="http://xmlns.jcp.org/jsp/jstl/core">
+<ui:composition template="/layouts/default.xhtml">
+    <ui:define name="title">#{text['fournisseurList.title']}</ui:define>
+    <ui:param name="menu" value="AdminMenu"/>
+
+    <ui:define name="body">
+        <div class="col-sm-10">
+            <h2>#{text['fournisseurList.heading']}</h2>
+            <h:form id="form">
+                            <p:fieldset legend="Recherche" toggleable="true" toggleSpeed="500">
+                                <h:panelGrid columns="4" cellpadding="10" width="100%">
+				 	<h:outputLabel for="nom" value="#{text['fournisseur.nom']}"/>  
+                                        <p:inputText id="nom" value="#{fournisseurController.searchObject.nom}" />                                                    
+                                        <h:outputLabel for="ville" value="#{text['fournisseur.ville']}"/>
+                                        <p:inputText id="ville" value="#{fournisseurController.searchObject.ville}"></p:inputText>
+                                        <f:facet name="footer">
+                                            <div align="center">
+                                                <p:commandButton value="Rechercher" action="#{fournisseurController.search}" update="fournisseurs" icon="iconSearch"></p:commandButton>
+                                            </div>
+                                        </f:facet>
+                                </h:panelGrid>
+                            </p:fieldset>  
+                            <p:separator/>
+                            <p:dataTable id="fournisseurs" var="fournisseur" value="#{fournisseurController.fournisseurs}" rows="5" lazy="true">
+                                        <p:column style="text-align:center" width="8%">
+                                            <f:facet name="header">
+                                                <p:column sortBy="nom">
+                                                    <h:outputText value="#{text['fournisseur.nom']}" />
+                                                </p:column>
+                                            </f:facet>
+                                            <h:outputText value="#{fournisseur.nom}" escape="true"/>
+                                        </p:column>
+                                        <p:column style="text-align:center" width="8%">
+                                            <f:facet name="header">
+                                                <p:column sortBy="ville">
+                                                    <h:outputText value="#{text['fournisseur.ville']}" />
+                                                </p:column>
+                                            </f:facet>
+                                            <h:outputText value="#{fournisseur.ville}" escape="true"/>
+                                        </p:column>
+                                        <p:column style="text-align:center" width="8%">
+                                            <f:facet name="header">
+                                                <p:column sortBy="email">
+                                                    <h:outputText value="#{text['fournisseur.email']}" />
+                                                </p:column>
+                                            </f:facet>
+                                            <h:outputText value="#{fournisseur.email}" escape="true"/>
+                                        </p:column>
+                                        <p:column style="text-align:center" width="8%">
+                                            <f:facet name="header">
+                                                <p:column sortBy="adresse">
+                                                    <h:outputText value="#{text['fournisseur.adresse']}" />
+                                                </p:column>
+                                            </f:facet>
+                                            <h:outputText value="#{fournisseur.address}" escape="true"/>
+                                        </p:column>
+                                        <p:column style="text-align:center" width="8%">
+                                            <f:facet name="header">
+                                                <p:column sortBy="numTel">
+                                                    <h:outputText value="#{text['fournisseur.numTel']}" />
+                                                </p:column>
+                                            </f:facet>
+                                            <h:outputText value="#{fournisseur.numTel}" escape="true"/>
+                                        </p:column>
+                                        <p:column style="text-align:center" width="8%">
+                                            <f:facet name="header">
+                                                <p:column sortBy="id">
+                                                    <h:outputText value="Action" />
+                                                </p:column>
+                                            </f:facet>
+                                            <p:commandButton icon="iconEdit" action="#{fournisseurController.prepareUpdate(fournisseur)}"
+                                                  update=":editForm:displayEdit" oncomplete="PF('editFournisseurWidget').show()">
+                                            </p:commandButton>
+                                        </p:column>
+                                        <f:facet name="footer">
+                                                <div align="center">
+                                                        <p:commandButton value="Ajouter" icon="iconAdd" action="#{fournisseurController.prepareAdd}"
+                                                                    update=":addFournisseurDialog" oncomplete="PF('addFournisseurWidget').show()">
+                                                        </p:commandButton>
+                                                </div>
+                                        </f:facet>
+                            </p:dataTable>
+                            <p:remoteCommand name="updateList" action="#{fournisseurController.init}" update="fournisseurs" />
+                 </h:form>
+        </div>
+    </ui:define>
+    <ui:define name="dialogs">
+           <p:dialog id="editFournisseurDialog" dynamic="true" appendToBody="false" header="Les détails concernant le fournisseur" widgetVar="editFournisseurWidget" resizable="false"  
+               showEffect="clip" hideEffect="fold">  
+               <p:scrollPanel>
+               <h:form id="editForm">
+                    <p:growl id="messages" showDetail="true"/>  
+                    <h:panelGrid id="displayEdit" columns="2" cellpadding="4" width="100%">  
+                        <h:outputLabel for="nom" value="#{text['fournisseur.nom']}"/>
+                        <p:inputText id="nom" value="#{fournisseurController.selectedFournisseur.nom}" />                                                    
+                        <h:outputLabel for="adresse" value="#{text['fournisseur.adresse']}"/>
+                        <p:inputTextarea id="adresse" value="#{fournisseurController.selectedFournisseur.address}" cols="80"/>
+                        <h:outputLabel for="ville" value="#{text['fournisseur.ville']}"/>
+                        <p:inputText id="ville" value="#{fournisseurController.selectedFournisseur.ville}" /> 
+                        <h:outputLabel for="email" value="#{text['fournisseur.email']}"/>
+                        <p:inputText id="email" value="#{fournisseurController.selectedFournisseur.email}" /> 
+                        <h:outputLabel for="numTel" value="#{text['fournisseur.numTel']}"/>
+                        <p:inputText id="numTel" value="#{fournisseurController.selectedFournisseur.numTel}" /> 
+                        <h:outputLabel for="prix" value="#{text['fournisseur.prix']}"/>
+                        <p:dataGrid var="prixFournisseur" value="#{fournisseurController.prixFournisseurs}" columns="3"  
+                            rows="15" paginator="true" id="prix"  
+                            paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}">  
+                            <p:panel header="#{prixFournisseur.produit.description}" style="text-align:center">  
+                                <h:panelGrid columns="2" style="width:100%"> 
+                                    <h:outputLabel for="prixUnit">Prix Unitaire</h:outputLabel>
+                                    <p:inputText id="prixUnit" value="#{prixFournisseur.prixUnit}" required="true"/>  
+                                </h:panelGrid>  
+                            </p:panel> 
+                        </p:dataGrid>
+            		<f:facet name="footer">
+                            <div align="center">
+                                <p:commandButton value="Enregistrer" action="#{fournisseurController.update}" icon="ui-icon-disk" process="@this :editForm:displayEdit" oncomplete="PF('editFournisseurWidget').hide();updateList();"/>
+                                <p:commandButton value="Supprimer" action="#{fournisseurController.delete}" icon="iconDelete" update=":form:fournisseurs" process="@this :editForm:displayEdit" oncomplete="PF('editFournisseurWidget').hide();updateList();"/> 
+                            </div>
+                        </f:facet>
+                    </h:panelGrid>  
+                 </h:form>
+               </p:scrollPanel>
+            </p:dialog>  
+            <p:dialog id="addFournisseurDialog" appendToBody="false" dynamic="true" header="Nouveau fournisseur" widgetVar="addFournisseurWidget" resizable="false"  
+               showEffect="clip" hideEffect="fold">  
+               <p:scrollPanel>
+               <h:form id="addForm">
+                    <h:panelGrid id="displayAdd" columns="2" cellpadding="4" width="100%">  
+                        <h:outputLabel for="nom" value="#{text['fournisseur.nom']}"/>
+                        <p:inputText id="nom" value="#{fournisseurController.newFournisseur.nom}" />                                                    
+                        <h:outputLabel for="adresse" value="#{text['fournisseur.adresse']}"/>
+                        <p:inputTextarea id="adresse" value="#{fournisseurController.newFournisseur.address}" cols="80"/>
+                        <h:outputLabel for="ville" value="#{text['fournisseur.ville']}"/>
+                        <p:inputText id="ville" value="#{fournisseurController.newFournisseur.ville}" /> 
+                        <h:outputLabel for="email" value="#{text['fournisseur.email']}"/>
+                        <p:inputText id="email" value="#{fournisseurController.newFournisseur.email}" /> 
+                        <h:outputLabel for="numTel" value="#{text['fournisseur.numTel']}"/>
+                        <p:inputText id="numTel" value="#{fournisseurController.newFournisseur.numTel}" /> 
+                        <h:outputLabel for="prix" value="#{text['fournisseur.prix']}"/>
+                        <p:dataGrid var="prixFournisseur" value="#{fournisseurController.prixFournisseurs}" columns="3"  
+                            rows="15" paginator="true" id="prix"  
+                            paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}">  
+                            <p:panel header="#{prixFournisseur.produit.description}" style="text-align:center">  
+                                <h:panelGrid columns="2" style="width:100%"> 
+                                    <h:outputLabel for="prixUnit">Prix Unitaire</h:outputLabel>
+                                    <p:inputText id="prixUnit" value="#{prixFournisseur.prixUnit}" required="true"/>  
+                                </h:panelGrid>  
+                            </p:panel> 
+                        </p:dataGrid>
+            		<f:facet name="footer">
+                            <div align="center">
+                                <p:commandButton value="Enregistrer" action="#{fournisseurController.saveNew}" icon="ui-icon-disk" process="@this :addForm:displayAdd" oncomplete="PF('addFournisseurWidget').hide();updateList();"/>
+                            </div>
+                        </f:facet>
+                    </h:panelGrid>  
+               </h:form>
+               </p:scrollPanel>
+            </p:dialog>  
+        </ui:define>
+</ui:composition>
+</html>

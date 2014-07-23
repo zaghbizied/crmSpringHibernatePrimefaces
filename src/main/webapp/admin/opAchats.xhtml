@@ -1,0 +1,188 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:f="http://java.sun.com/jsf/core" xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:p="http://primefaces.org/ui"
+      xmlns:c="http://xmlns.jcp.org/jsp/jstl/core">
+<ui:composition template="/layouts/default.xhtml">
+    <ui:define name="title">#{text['opAchatList.title']}</ui:define>
+    <ui:param name="menu" value="AdminMenu"/>
+
+    <ui:define name="body">
+        <div class="col-sm-10">
+            <h2>#{text['opAchatList.heading']}</h2>
+            <h:form id="form">
+                            <p:fieldset legend="Recherche" toggleable="true" toggleSpeed="500">
+                                <h:panelGrid columns="4" cellpadding="10" width="100%">
+                                        <h:outputLabel for="fournisseur">Fournisseur</h:outputLabel>  
+                                        <p:selectOneMenu id="fournisseur" value="#{opAchatController.searchObject.fournisseur}" converter="#{fournisseurConverter}" panelStyle="width:160px"  
+                                        effect="fade" var="c" style="width:160px"  filter="true" filterMatchMode="contains">  
+                                           <f:selectItem itemLabel="Choisir un fournisseur" itemValue="" />  
+                                           <f:selectItems value="#{opAchatController.fournisseurs}" var="fournisseur" itemLabel="#{fournisseur.nom}" itemValue="#{fournisseur}"/>  
+                                           <p:column>  
+                                               #{c.nom}
+                                           </p:column>  
+                                        </p:selectOneMenu>  
+				 	<h:outputLabel for="dateAchat">Date d'achat</h:outputLabel>  
+                                        <p:calendar id="dateAchat" value="#{opAchatController.searchObject.dateAchat}" pattern="dd/MM/yyyy" styleClass="calendar" showButtonPanel="true" navigator="true">
+					     <f:convertDateTime pattern="dd/MM/yyyy" />
+					</p:calendar>
+                                        <f:facet name="footer">
+                                            <div align="center">
+                                                <p:commandButton value="Rechercher" action="#{opAchatController.search}" update="opAchats" icon="iconSearch" onclick="initPageIndex();"></p:commandButton>
+                                            </div>
+                                        </f:facet>
+                                </h:panelGrid>
+                            </p:fieldset>  
+                            <p:separator/>
+                            <p:dataTable id="opAchats" var="opAchat" value="#{opAchatController.opAchats}" rows="5" 
+                                         paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink}" 
+                                         rowsPerPageTemplate="5,10,15" lazy="true" paginator="true" widgetVar="opAchatsWV">
+                                        <p:column style="text-align:center">
+                                            <f:facet name="header">
+                                                <p:column sortBy="dateAchat">
+                                                    <h:outputText value="#{text['opAchat.dateAchat']}" />
+                                                </p:column>
+                                            </f:facet>
+                                            <h:outputText value="#{opAchat.dateAchat}" >
+                                                <f:convertDateTime pattern="dd/MM/yyyy HH:mm"/>
+                                            </h:outputText>
+                                        </p:column>
+                                        <p:column style="text-align:center">
+                                            <f:facet name="header">
+                                                <p:column sortBy="fournisseur">
+                                                    <h:outputText value="#{text['opAchat.fournisseur']}" />
+                                                </p:column>
+                                            </f:facet>
+                                            <h:outputText value="#{opAchat.fournisseur.nom}" />
+                                        </p:column>
+                                        <p:column style="text-align:center">
+                                            <f:facet name="header">
+                                                <p:column sortBy="subject">
+                                                    <h:outputText value="#{text['opAchat.achats']}" />
+                                                </p:column>
+                                            </f:facet>
+                                            <p:dataList value="#{opAchat.nestedAchats}" var="achat" type="definition" >  
+                                                #{achat.quantite} , #{achat.produit.description}  
+                                            </p:dataList>
+                                        </p:column>
+                                        <p:column style="text-align:center">
+                                            <f:facet name="header">
+                                                <p:column sortBy="dateAchat">
+                                                    <h:outputText value="#{text['opAchat.montant']}" />
+                                                </p:column>
+                                            </f:facet>
+                                            <h:outputText value="#{opAchat.montant}" />
+                                        </p:column>
+                                        <p:column style="text-align:center">
+                                            <f:facet name="header">
+                                                <p:column sortBy="id">
+                                                    <h:outputText value="Action" />
+                                                </p:column>
+                                            </f:facet>
+                                            <p:commandButton icon="iconEdit" action="#{opAchatController.prepareUpdate(opAchat)}"
+                                                  update=":editForm:displayEdit" oncomplete="PF('editOpAchatWidget').show()">
+                                            </p:commandButton>
+                                        </p:column>
+                                        <f:facet name="header">
+                                                <div align="left">
+                                                        <p:commandButton value="Nouveau" icon="iconAdd" action="#{opAchatController.prepareAdd}"
+                                                                    update=":addForm:displayAdd" oncomplete="PF('addOpAchatWidget').show()">
+                                                        </p:commandButton>
+                                                </div>
+                                        </f:facet>
+                            </p:dataTable>
+                            <p:remoteCommand name="updateList" action="#{opAchatController.search}" update="opAchats" />
+                 </h:form>
+        </div>
+        <script type="text/javascript">  
+                function initPageIndex() {  
+                        PF('opAchatsWV').getPaginator().setPage(0);
+                }
+        </script> 
+    </ui:define>
+    <ui:define name="dialogs">
+           <p:dialog id="editOpAchatDialog" dynamic="true" appendToBody="false" header="Les détails concernant l'opération d'achat" widgetVar="editOpAchatWidget" resizable="false"  
+               showEffect="clip" hideEffect="fold">  
+               <h:form id="editForm">
+                    <p:growl id="messages" showDetail="true"/>  
+                    <h:panelGrid id="displayEdit" columns="2" cellpadding="4" width="100%">  
+                        <h:outputLabel for="fournisseur">Fournisseur</h:outputLabel>  
+                        <p:selectOneMenu id="fournisseur" value="#{opAchatController.selectedOpAchat.fournisseur}" converter="#{fournisseurConverter}" panelStyle="width:160px"  
+                        effect="fade" var="c" style="width:160px"  filter="true" filterMatchMode="contains">  
+                           <f:selectItem itemLabel="Choisir un fournisseur" itemValue="" />  
+                           <f:selectItems value="#{opAchatController.fournisseurs}" var="fournisseur" itemLabel="#{fournisseur.nom}" itemValue="#{fournisseur}"/>  
+                           <p:column>  
+                               #{c.nom}
+                           </p:column>  
+                        </p:selectOneMenu>  
+			<h:outputLabel for="achats">Les achats</h:outputLabel>  
+                        <p:dataGrid var="achat" value="#{opAchatController.achats}" columns="3"  
+                            rows="15" paginator="true" id="achats"  
+                            paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}">  
+                            <p:panel header="#{achat.produit.description}" style="text-align:center">  
+                                <h:panelGrid columns="2" style="width:100%">  
+                                    <h:outputLabel for="quantite">Quantité</h:outputLabel>
+                                    <p:inputText id="quantite" value="#{achat.quantite}" required="true"/>  
+                                    <h:outputLabel for="prixUnit">Prix Unitaire</h:outputLabel>
+                                    <p:inputText id="prixUnit" value="#{achat.prixUnit}" required="true"/>  
+                                </h:panelGrid>  
+                            </p:panel> 
+                        </p:dataGrid>
+            		<f:facet name="footer">
+                            <div align="center">
+                                <p:commandButton value="Enregistrer" action="#{opAchatController.update}" icon="ui-icon-disk" process="@this :editForm:displayEdit" update="@(.ui-messages),:form:opAchats" oncomplete="handleEditOpAchatRequest(xhr, status, args);"/>
+                                <p:commandButton value="Supprimer" action="#{opAchatController.delete}" icon="iconDelete" process="@this :editForm:displayEdit" update="@(.ui-messages),:form:opAchats" oncomplete="handleEditOpAchatRequest(xhr, status, args);"/> 
+                            </div>
+                        </f:facet>
+                    </h:panelGrid>  
+                 </h:form>
+                 <script type="text/javascript">  
+                    function handleEditOpAchatRequest(xhr, status, args) {  
+                        if(args.validationFailed || !args.fail) {  
+                            PF('editOpAchatWidget').hide();  
+                            updateList();
+                        }   
+                        else {  
+                            PF('editOpAchatWidget').jq.effect("editOpAchatWidget", { times:5 }, 100);  
+                        }  
+                    }  
+                  </script>
+            </p:dialog>  
+           <p:dialog id="addOpAchatDialog" appendToBody="false" dynamic="true" header="Nouvelle opération achat" widgetVar="addOpAchatWidget" resizable="false"  
+               showEffect="clip" hideEffect="fold">  
+               <h:form id="addForm">
+                    <h:panelGrid id="displayAdd" columns="2" cellpadding="4" width="100%">  
+                        <h:outputLabel for="fournisseur">Fournisseur</h:outputLabel>  
+                        <p:selectOneMenu id="fournisseur" value="#{opAchatController.newOpAchat.fournisseur}" converter="#{fournisseurConverter}" panelStyle="width:160px"  
+                        effect="fade" var="c" style="width:160px"  filter="true" filterMatchMode="contains">  
+                           <p:ajax event="valueChange" update="achats" listener="#{opAchatController.onFournisseurSelect}"/>
+                           <f:selectItem itemLabel="Choisir un fournisseur" itemValue="" />  
+                           <f:selectItems value="#{opAchatController.fournisseurs}" var="fournisseur" itemLabel="#{fournisseur.nom}" itemValue="#{fournisseur}"/>  
+                           <p:column>  
+                               #{c.nom}
+                           </p:column>  
+                        </p:selectOneMenu>  
+                        <h:outputLabel for="achats">Les achats</h:outputLabel>  
+                        <p:dataGrid var="achat" value="#{opAchatController.achats}" columns="3"  
+                            rows="15" paginator="true" id="achats"  
+                            paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}">  
+                            <p:panel header="#{achat.produit.description}" style="text-align:center">  
+                                <h:panelGrid columns="2" style="width:100%">  
+                                    <h:outputLabel for="quantite">Quantité</h:outputLabel>
+                                    <p:inputText id="quantite" value="#{achat.quantite}" required="true"/>  
+                                    <h:outputLabel for="prixUnit">Prix Unitaire</h:outputLabel>
+                                    <p:inputText id="prixUnit" value="#{achat.prixUnit}" required="true"/>  
+                                </h:panelGrid>  
+                            </p:panel> 
+                        </p:dataGrid> 
+            		<f:facet name="footer">
+                            <div align="center">
+                                <p:commandButton value="Enregistrer" action="#{opAchatController.saveNew}" icon="ui-icon-disk" process="@this :addForm:displayAdd" oncomplete="PF('addOpAchatWidget').hide();updateList();"/>
+                            </div>
+                        </f:facet>
+                    </h:panelGrid>  
+               </h:form>
+            </p:dialog>  
+            
+        </ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,230 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:f="http://java.sun.com/jsf/core" xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:p="http://primefaces.org/ui"
+      >
+<ui:composition template="/layouts/default.xhtml">
+    <ui:define name="title">#{text['opVenteList.title']}</ui:define>
+    <ui:param name="menu" value="AdminMenu"/>
+
+    <ui:define name="body">
+        <div class="col-sm-10">
+            <h2>#{text['opVenteList.heading']}</h2>
+            <h:form id="form">
+                    <p:fieldset legend="Recherche" toggleable="true" toggleSpeed="500">
+                        <h:panelGrid id="search" columns="4" cellpadding="10" width="100%">
+                                <h:outputLabel for="client">Client</h:outputLabel>  
+                                <p:selectOneMenu id="client" value="#{opVenteController.searchObject.client}" converter="#{clientConverter}" panelStyle="width:160px"  
+                                effect="fade" var="c" style="width:160px"  filter="true" filterMatchMode="contains">  
+                                   <f:selectItem itemLabel="Choisir un client" itemValue="" />  
+                                   <f:selectItems value="#{opVenteController.clients}" var="client" itemLabel="#{client.fullName}" itemValue="#{client}"/>  
+                                   <p:column>  
+                                       #{c.fullName}
+                                   </p:column>  
+                                </p:selectOneMenu>  
+                                <h:outputLabel for="dateVente" value="#{text['opVente.dateVente']}"/>
+                                <p:calendar id="dateVente" value="#{opVenteController.searchObject.dateVente}" pattern="dd-MM-yyyy" styleClass="calendar" showButtonPanel="true" navigator="true">
+                                      <f:convertDateTime pattern="dd-MM-yyyy" />
+                                </p:calendar>
+                                <f:facet name="footer">
+                                    <div align="center">
+                                        <p:commandButton value="Rechercher" action="#{opVenteController.search}" update=":form" icon="iconSearch" onclick="initPageIndex();">
+                                        </p:commandButton>
+                                    </div>
+                                </f:facet>
+                        </h:panelGrid>
+                    </p:fieldset>  
+                    <p:separator/>
+                    <p:dataTable id="opVentes" var="opVente" value="#{opVenteController.opVentes}" paginator="true" 
+                                 rows="5" paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink}" 
+                                 rowsPerPageTemplate="5,10,15" lazy="true" widgetVar="opVentesWV">            
+                                <p:column style="text-align:center">
+                                    <f:facet name="header">
+                                        <p:column sortBy="dateVente">
+                                            <h:outputText value="#{text['opVente.dateVente']}" />
+                                        </p:column>
+                                    </f:facet>
+                                    <h:outputText value="#{opVente.dateVente}">
+                                        <f:convertDateTime pattern="dd-MM-yyyy"/>
+                                    </h:outputText> 
+                                </p:column>
+                                <p:column style="text-align:center">
+                                    <f:facet name="header">
+                                        <p:column sortBy="client">
+                                            <h:outputText value="#{text['opVente.client']}" />
+                                        </p:column>
+                                    </f:facet>
+                                    <h:outputText value="#{opVente.client.fullName}" />
+                                </p:column>
+                                <p:column style="text-align:center">
+                                    <f:facet name="header">
+                                        <p:column>
+                                            <h:outputText value="#{text['opVente.ventes']}" />
+                                        </p:column>
+                                    </f:facet>                                    
+                                    <p:dataList value="#{opVente.nestedVentes}" var="vente" type="definition" >  
+                                            #{vente.quantite} #{vente.produit.description}  
+                                    </p:dataList>
+                                </p:column>
+				<p:column style="text-align:center">
+                                    <f:facet name="header">
+                                        <p:column sortBy="montant">
+                                            <h:outputText value="#{text['opVente.montant']}" />
+                                        </p:column>
+                                    </f:facet>
+                                    <h:outputText value="#{opVente.montant}" />
+                                </p:column>
+				<p:column style="text-align:center">
+                                    <f:facet name="header">
+                                        <p:column sortBy="montantPaye">
+                                            <h:outputText value="Montant payé" />
+                                        </p:column>
+                                    </f:facet>
+                                    <h:outputText value="#{opVente.montantPaye}" />
+                                </p:column>
+                                <p:column style="text-align:center" width="8%">
+                                    <f:facet name="header">
+                                        <p:column sortBy="id">
+                                            <h:outputText value="Action" />
+                                        </p:column>
+                                    </f:facet>
+                                    <p:commandButton icon="iconEdit" action="#{opVenteController.prepareUpdate(opVente)}" process="@this :form"
+                                          update=":editForm:displayEdit" oncomplete="PF('editOpVenteWidget').show()">
+                                    </p:commandButton>
+                                </p:column>
+                                <f:facet name="header">
+                                        <div align="left">
+                                            <p:commandButton value="Nouveau" icon="iconAdd" action="#{opVenteController.prepareAdd}" process=":form:opVentes"
+                                                            update=":addOpVenteDialog" oncomplete="PF('addOpVenteWidget').show()">
+                                            </p:commandButton>
+                                        </div>
+                                </f:facet>
+                    </p:dataTable>
+                    <p:remoteCommand name="updateList" action="#{opVenteController.search}" update="opVentes" />
+             </h:form>
+        </div>
+        <script type="text/javascript">  
+                function initPageIndex() {  
+                        PF('opVentesWV').getPaginator().setPage(0);
+                }
+        </script> 
+    </ui:define>
+    <ui:define name="dialogs">
+           <p:dialog id="editOpVenteDialog" dynamic="true" appendToBody="false" header="Les détails concernant l'opération de vente" widgetVar="editOpVenteWidget" resizable="false"  
+               showEffect="clip" hideEffect="fold">  
+               <h:form id="editForm">
+                    <p:messages id="messages"/>
+                    <h:panelGrid id="displayEdit" columns="2" cellpadding="4" width="100%">  
+                        <h:outputLabel for="client">Client</h:outputLabel>  
+                        <p:selectOneMenu id="client" value="#{opVenteController.selectedOpVente.client}" converter="#{clientConverter}" panelStyle="width:160px"  
+                                         effect="fade" var="c" style="width:160px"  filter="true" filterMatchMode="contains">  
+                            <f:selectItem itemLabel="Choisir un client" itemValue="" />  
+			    <f:selectItems value="#{opVenteController.clients}" var="client" itemLabel="#{client.fullName}" itemValue="#{operateur}"/>  
+			    <p:column>  
+			       #{c.fullName}
+			    </p:column>  
+			</p:selectOneMenu>  
+                        <h:outputLabel for="ventes">Ventes</h:outputLabel>  
+                        <p:dataGrid var="vente" value="#{opVenteController.ventes}" columns="3"  
+                            rows="15" paginator="true" id="ventes"  
+                            paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}">  
+                            <p:panel header="#{vente.produit.description}" style="text-align:center">  
+                                <h:panelGrid columns="2" style="width:100%">
+                                    <h:outputLabel for="quantite">Quantité</h:outputLabel>
+                                    <p:inputText id="quantite" value="#{vente.quantite}" required="true"/>  
+                                    <h:outputLabel for="prixUnit">Prix Unitaire</h:outputLabel>
+                                    <p:inputText id="prixUnit" value="#{vente.prixUnit}" required="true"/>
+                                    <h:outputLabel for="disponible">Disponible</h:outputLabel>
+                                    <h:outputText id="disponible" value="#{vente.disponible}"/>
+                                    <h:outputLabel rendered="#{vente.produit.recharge}" for="numTel">Numéro de téléphone</h:outputLabel>
+                                    <p:selectOneMenu id="numTel" value="#{vente.numTel}" converter="#{numTelConverter}" panelStyle="width:160px"  
+                                         effect="fade" var="n" style="width:160px"  filter="true" filterMatchMode="contains" rendered="#{vente.produit.recharge}">  
+                                        <f:selectItem itemLabel="Choisir un numéro" itemValue="" />  
+                                        <f:selectItems value="#{opVenteController.numTels}" var="num" itemLabel="#{num.numTel}" itemValue="#{num}"/>  
+                                        <p:column>  
+                                           #{n.numTel}
+                                        </p:column>  
+                                    </p:selectOneMenu>  
+                                </h:panelGrid>  
+                            </p:panel> 
+                        </p:dataGrid>
+            		<f:facet name="footer">
+                            <div align="center">
+                                <p:commandButton value="Enregistrer" actionListener="#{opVenteController.update}" icon="ui-icon-disk" process="@this :editForm:displayEdit" update="@(.ui-messages)" oncomplete="handleEditOpVenteRequest(xhr, status, args);"/>
+                                <p:commandButton value="Supprimer" action="#{opVenteController.delete}" icon="iconDelete" update=":form" process="@this :editForm:displayEdit" oncomplete="PF('editOpVenteWidget').hide();updateList();"/> 
+                            </div>
+                        </f:facet>
+                    </h:panelGrid>  
+                 </h:form>
+                 <script type="text/javascript">  
+                    function handleEditOpVenteRequest(xhr, status, args) {  
+                        if(args.validationFailed || !args.fail) {  
+                            PF('editOpVenteWidget').hide();  
+                            updateList();
+                        }   
+                        else {  
+                            PF('editOpVenteWidget').jq.effect("editOpVenteWidget", { times:5 }, 100);  
+                        }  
+                    }  
+               </script> 
+            </p:dialog>  
+           <p:dialog id="addOpVenteDialog" appendToBody="false" dynamic="true" header="Nouvelle opération vente" widgetVar="addOpVenteWidget" resizable="false"  
+               showEffect="clip" hideEffect="fold">  
+               <h:form id="addForm">
+                    <p:messages id="messages"/>
+                    <h:panelGrid id="displayAdd" columns="2" cellpadding="4" width="100%">  
+                        <h:outputLabel for="client">Client</h:outputLabel>  
+                        <p:selectOneMenu id="client" value="#{opVenteController.newOpVente.client}" converter="#{clientConverter}" panelStyle="width:160px"  
+                                         effect="fade" var="c" style="width:160px"  filter="true" filterMatchMode="contains" required="true">  
+                            <p:ajax update="ventes" listener="#{opVenteController.onClientSelect}"/>
+                            <f:selectItem itemLabel="Choisir un client" itemValue="" />  
+			    <f:selectItems value="#{opVenteController.clients}" var="client" itemLabel="#{client.fullName}" itemValue="#{operateur}"/>  
+			    <p:column>  
+			       #{c.fullName}
+			    </p:column>  
+			</p:selectOneMenu>  
+                        <h:outputLabel for="ventes">Les ventes</h:outputLabel>  
+                        <p:dataGrid var="vente" value="#{opVenteController.ventes}" columns="3"  
+                            rows="15" paginator="true" id="ventes"  
+                            paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}">  
+                            <p:panel header="#{vente.produit.description}" style="text-align:center">  
+                                <h:panelGrid columns="2" style="width:100%">  
+                                    <h:outputLabel for="quantite">Quantité</h:outputLabel>
+                                    <p:inputText id="quantite" value="#{vente.quantite}" required="true"/>  
+                                    <h:outputLabel for="prixUnit">Prix Unitaire</h:outputLabel>
+                                    <p:inputText id="prixUnit" value="#{vente.prixUnit}" required="true" />  
+                                    <h:outputLabel for="disponible">Disponible</h:outputLabel>
+                                    <h:outputText id="disponible" value="#{vente.disponible}"/>  
+                                    <h:outputLabel rendered="#{vente.produit.recharge}" for="numTel">Numéro de téléphone</h:outputLabel>
+                                    <p:selectOneMenu id="numTel" value="#{vente.numTel}" converter="#{numTelConverter}" panelStyle="width:160px"  
+                                         effect="fade" var="n" style="width:160px"  filter="true" filterMatchMode="contains" rendered="#{vente.produit.recharge}">  
+                                        <f:selectItem itemLabel="Choisir un numéro" itemValue="" />  
+                                        <f:selectItems value="#{opVenteController.numTels}" var="num" itemLabel="#{num.numTel}" itemValue="#{num}"/>  
+                                        <p:column>  
+                                           #{n.numTel}
+                                        </p:column>  
+                                    </p:selectOneMenu>  
+                                </h:panelGrid>  
+                            </p:panel> 
+                        </p:dataGrid>
+            		<f:facet name="footer">
+                                <div align="center">
+                                    <p:commandButton value="Enregistrer" actionListener="#{opVenteController.saveNew}" icon="ui-icon-disk" process="@this :addForm:displayAdd" update="@(.ui-messages)" oncomplete="handleAddOpVenteRequest(xhr, status, args);"/>
+                                </div>
+                        </f:facet>
+                    </h:panelGrid>  
+               </h:form>
+               <script type="text/javascript">  
+                    function handleAddOpVenteRequest(xhr, status, args) {  
+                        if(args.validationFailed || !args.fail) {  
+                            PF('addOpVenteWidget').hide();  
+                            updateList();
+                        }   
+                        else {  
+                            PF('addOpVenteWidget').jq.effect("addOpVenteWidget", { times:5 }, 100);  
+                        }  
+                    }  
+               </script> 
+            </p:dialog>  
+        </ui:define>
+</ui:composition>
+</html>

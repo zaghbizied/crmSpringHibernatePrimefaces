@@ -1,0 +1,28 @@
+
+<!DOCTYPE hibernate-configuration PUBLIC "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+<!--<!DOCTYPE hibernate-configuration PUBLIC "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+    "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">-->
+
+<hibernate-configuration>
+    <session-factory>
+        <mapping class="com.crm.model.User"/>
+        <mapping class="com.crm.model.Role"/>
+        <mapping class="com.crm.model.Achat"/>
+        <mapping class="com.crm.model.Client"/>
+        <mapping class="com.crm.model.PrixClient"/>
+        <mapping class="com.crm.model.PrixFournisseur"/>
+        <mapping class="com.crm.model.NumTel"/>
+        <mapping class="com.crm.model.OpAchat"/>
+        <mapping class="com.crm.model.OpVente"/>
+        <mapping class="com.crm.model.Operateur"/>
+        <mapping class="com.crm.model.Produit"/>
+        <mapping class="com.crm.model.Vente"/>
+        <mapping class="com.crm.model.Invoice"/>
+        <mapping class="com.crm.model.PaiementClient"/>
+        <mapping class="com.crm.model.PaiementFournisseur"/>
+        <mapping class="com.crm.model.Fournisseur"/>
+        <mapping class="com.crm.model.Caisse"/>
+        <mapping class="com.crm.model.PrelevementCaisse"/>
+    </session-factory>
+</hibernate-configuration>

@@ -1,0 +1,83 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:c="http://java.sun.com/jsp/jstl/core"
+      xmlns:f="http://java.sun.com/jsf/core" xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui" xmlns:ui="http://java.sun.com/jsf/facelets">
+
+<ui:composition template="/layouts/default.xhtml">
+    
+    <ui:define name="title">#{text['operateurList.title']}</ui:define>
+    <ui:param name="menu" value="AdminMenu"/>
+    
+
+    <ui:define name="body">
+        <div class="col-sm-10">
+            <h2>#{text['operateurList.heading']}</h2>
+            <h:form id="form">
+            
+            <p:dataTable id="operateurs" var="operateur" value="#{operateurController.operateurs}"
+                         rows="25" style="width: 40%;text-align: center;">
+                <p:column width="8%" style="text-align: center;">
+                    <f:facet name="header">
+                        <p:column sortBy="id">
+                            <h:outputText value="Action" />
+                        </p:column>
+                    </f:facet>
+                    <p:commandButton value="Modifier" icon="iconEdit" action="#{operateurController.prepareUpdate(operateur)}"
+                                            update=":editForm:displayEdit" oncomplete="PF('editOperateurWidget').show()">
+                    </p:commandButton>
+                </p:column>
+                
+                <p:column width="20%" style="text-align: center;" filterBy="name" filterMatchMode="contains">
+                    <f:facet name="header">
+                        <p:column sortBy="name">
+                            <h:outputText value="#{text['operateur.name']}" />
+                        </p:column>
+                    </f:facet>
+                    <h:outputText value="#{operateur.nom}" escape="true"/>
+                </p:column>
+                <f:facet name="footer">
+                	<div align="center">
+                        <p:commandButton value="Ajouter" icon="iconAdd" action="#{operateurController.prepareAdd}"
+                                            update=":addForm:displayAdd" oncomplete="PF('addOperateurWidget').show()">
+                        </p:commandButton>
+                	</div>
+                </f:facet>
+                
+            </p:dataTable>
+            </h:form>
+            
+        
+        </div>
+    </ui:define>
+    <ui:define name="dialogs">
+        <p:dialog id="editOperateurDialog" dynamic="true" appendToBody="false" header="#{text['operateurDetail.heading']}" widgetVar="editOperateurWidget" resizable="false"  
+               showEffect="clip" hideEffect="fold">  
+               <h:form id="editForm">
+                    <h:panelGrid id="displayEdit" columns="2" cellpadding="4" width="100%">  
+		        <h:outputLabel for="name" value="#{text['operateur.name']}"/>
+			<p:inputText id="name" value="#{operateurController.selectedOperateur.nom}" required="true" maxlength="255"/>
+			<f:facet name="footer">
+                            <div align="center">
+                                <p:commandButton value="Enregistrer" action="#{operateurController.update}" icon="ui-icon-disk" update=":form:operateurs" process="@this :editForm:displayEdit" oncomplete="PF('editOperateurWidget').hide()"/>
+                                <p:commandButton value="Supprimer" action="#{operateurController.delete}" icon="iconDelete" update=":form:operateurs" process="@this :editForm:displayEdit" oncomplete="PF('editOperateurWidget').hide()"/> 
+                            </div>
+                        </f:facet>
+                    </h:panelGrid>  
+               </h:form>
+            </p:dialog>  
+           <p:dialog id="addOperateurDialog" dynamic="true" appendToBody="false" header="Nouveau Opérateur" widgetVar="addOperateurWidget" resizable="false"  
+               showEffect="clip" hideEffect="fold">
+               <h:form id="addForm">  
+                    <h:panelGrid id="displayAdd" columns="2" cellpadding="4" width="100%">
+                    	<h:outputLabel for="namee" value="#{text['operateur.name']}"/>
+				        <p:inputText id="namee" value="#{operateurController.newOperateur.nom}" required="true" maxlength="255"/>
+                    	<f:facet name="footer">
+                            <div align="center">
+                                <p:commandButton value="Enregistrer" action="#{operateurController.saveNew}" update=":form:operateurs" oncomplete="PF('addOperateurWidget').hide()" icon="ui-icon-disk" process="@this :addForm:displayAdd"/>
+                            </div>
+                        </f:facet>
+                    </h:panelGrid>  
+               </h:form>
+            </p:dialog>  
+    </ui:define>
+</ui:composition>
+</html> 
