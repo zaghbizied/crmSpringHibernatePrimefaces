@@ -27,14 +27,14 @@
                             </p:calendar>
                             <f:facet name="footer">
                                 <div align="center">
-                                    <p:commandButton value="Rechercher" action="#{invoiceController.search}" update="invoices" icon="iconSearch">
+                                    <p:commandButton value="Rechercher" action="#{invoiceController.search}" update="invoices" icon="iconSearch" onsuccess="initInvoicePageIndex();">
                                     </p:commandButton>
                                 </div>
                             </f:facet>
                     </h:panelGrid>
                 </p:fieldset>  
                 <p:separator/>   
-                <p:dataTable id="invoices" var="invoice" value="#{invoiceController.invoices}" paginator="true" rows="5" lazy="true">            
+                <p:dataTable id="invoices" var="invoice" value="#{invoiceController.invoices}" paginator="true" rows="5" lazy="true" widgetVar="invoicesWV">            
                         <p:column style="text-align:center">
                             <f:facet name="header">
                                 <p:column sortBy="dateFact">
@@ -74,9 +74,15 @@
                 <p:remoteCommand name="updateList" action="#{invoiceController.search}" update="invoices"/>
             </h:form>
         </div>
+        <script type="text/javascript">  
+                function initInvoicePageIndex() {  
+                        PF('invoicesWV').getPaginator().setPage(0);
+                }
+        </script> 
     </ui:define>
     <ui:define name="dialogs">
-            <p:dialog id="addInvoiceDialog" dynamic="true" appendToBody="false" header="Nouvelle Facture" widgetVar="addInvoiceWidget" resizable="false" showEffect="clip" hideEffect="fold">
+            <p:dialog id="addInvoiceDialog" dynamic="true" appendToBody="false" header="Nouvelle Facture" widgetVar="addInvoiceWidget" resizable="false" showEffect="clip" hideEffect="fold" width="100%" height="500">
+                <p:scrollPanel mode="native">
                 <h:form id="addForm">
                     <h:panelGrid id="displayAdd" columns="2" cellpadding="10">
                         <h:outputLabel for="dateFact" value="Date de facturation"/>
@@ -86,7 +92,7 @@
                         <h:outputLabel for="client" value="Client"/>
                         <p:selectOneMenu id="client" value="#{invoiceController.newInvoice.client}" converter="#{clientConverter}" panelStyle="width:160px"  
                             effect="fade" var="c" style="width:160px" filter="true" filterMatchMode="contains">  
-                               <p:ajax event="valueChange" process="@this" update="opVentes" listener="#{invoiceController.onClientSelect}"/>
+                               <p:ajax event="valueChange" process="@this" onsuccess="initPageIndex();" update="opVentes" listener="#{invoiceController.onClientSelect}"/>
                                <f:selectItem itemLabel="Choisir un client" itemValue="" />  
                                <f:selectItems value="#{invoiceController.clients}" var="client" itemLabel="#{client.fullName}" itemValue="#{client}"/>  
                                <p:column>  
@@ -94,7 +100,7 @@
                                </p:column>  
                         </p:selectOneMenu> 
                         <h:outputLabel for="opVentes" value="Les opérations de vente"/>
-                        <p:dataTable id="opVentes" var="opVente" value="#{invoiceController.opVentes}" paginator="true" rows="5" lazy="true" selection="#{invoiceController.selOpVentes}" rowKey="#{opVente.id}">            
+                        <p:dataTable id="opVentes" var="opVente" value="#{invoiceController.opVentes}" paginator="true" rows="5" lazy="true" selection="#{invoiceController.selOpVentes}" rowKey="#{opVente.id}" widgetVar="opVentesWV">            
                             <p:column selectionMode="multiple" style="width:2%" />  
                             <p:column style="text-align:center">
                                 <f:facet name="header">
@@ -133,6 +139,7 @@
                         </f:facet>
                     </h:panelGrid>
                 </h:form>
+                </p:scrollPanel>
             </p:dialog>
             <p:dialog id="previewInvoiceDialog" dynamic="true" appendToBody="true" header="PDF Preview" widgetVar="previewInvoiceWidget" resizable="false"  
                       showEffect="clip" hideEffect="fold" width="100%" height="70%">  
@@ -140,7 +147,11 @@
                             Votre navigateur ne peut pas visualiser ce pdf, <h:outputLink value="#{invoiceController.pdfInvoice}">click</h:outputLink> pour télécharger.  
                         </p:media>  
             </p:dialog>  
-             
+        <script type="text/javascript">  
+                function initPageIndex() {  
+                        PF('opVentesWV').getPaginator().setPage(0);
+                }
+        </script> 
     </ui:define>
 </ui:composition>
 </html>

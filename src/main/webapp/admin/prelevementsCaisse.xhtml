@@ -18,14 +18,16 @@
                             </p:calendar>
                             <f:facet name="footer">
                                 <div align="center">
-                                    <p:commandButton value="Rechercher" action="#{prelevementCaisseController.search}" process="@this :form:search" update="prelevements" icon="iconSearch">
+                                    <p:commandButton value="Rechercher" action="#{prelevementCaisseController.search}" process="@this :form:search" update="prelevements" icon="iconSearch" onclick="initPageIndex();">
                                     </p:commandButton>
                                 </div>
                             </f:facet>
                     </h:panelGrid>
                 </p:fieldset>  
                 <p:separator/>   
-                <p:dataTable id="prelevements" var="prelevement" value="#{prelevementCaisseController.prelevements}" paginator="true" rows="5" lazy="true">            
+                <p:dataTable id="prelevements" var="prelevement" value="#{prelevementCaisseController.prelevements}" paginator="true" 
+                                 rows="5" paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink}" 
+                                 rowsPerPageTemplate="5,10,15" lazy="true" widgetVar="prelevementsWV">            
                         <p:column style="text-align:center">
                             <f:facet name="header">
                                 <p:column sortBy="montant">
@@ -65,6 +67,11 @@
             </h:form>
         </div>
         <p:growl id="growl" showDetail="false" life="5000" />
+        <script type="text/javascript">  
+                function initPageIndex() {  
+                        PF('prelevementsWV').getPaginator().setPage(0);
+                }
+        </script> 
     </ui:define>
     <ui:define name="dialogs">
             <p:dialog id="addPrelevementDialog" dynamic="true" appendToBody="false" header="Nouveau Prélèvement Caisse" widgetVar="addPrelevementWidget" resizable="false" showEffect="clip" hideEffect="fold">

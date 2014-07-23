@@ -9,8 +9,20 @@
         <Menu name="AdminMenu" title="menu.admin" description="Admin Menu" roles="ROLE_ADMIN" width="120" page="/admin/users">
             <Item name="ViewUsers" title="menu.admin.users" page="/admin/users"/>
             <Item name="ActiveUsers" title="home.activeUsers" page="/admin/activeUsers"/>
-            <Item name="ReloadContext" title="menu.admin.reload" page="/admin/reload"/>
-            <Item name="FileUpload" title="menu.selectFile" page="/selectFile"/>
+            <Item name="Clients" title="menu.admin.clients" page="/admin/clients"/>
+            <Item name="Fournisseurs" title="menu.admin.fournisseurs" page="/admin/fournisseurs"/>
+            <Item name="OpAchats" title="menu.admin.opAchats" page="/admin/opAchats"/>
+            <Item name="OpVentes" title="menu.admin.opVentes" page="/admin/opVentes"/>
+            <Item name="Operateurs" title="menu.admin.operateurs" page="/admin/operateurs"/>
+            <Item name="Produits" title="menu.admin.produits" page="/admin/produits"/>
+            <Item name="Factures" title="menu.admin.factures" page="/admin/facturation"/>
+            <Item name="Caisse" title="menu.admin.caisse" page="/admin/caisse"/>
+            <Item name="BilanJournalier" title="menu.admin.bilanJ" page="/admin/bilanJournalier"/>
+            <Item name="BilanMensuel" title="menu.admin.bilanM" page="/admin/bilanMensuel"/>
+            <Item name="BilanAnnuel" title="menu.admin.bilanA" page="/admin/bilanAnnuel"/>
+            <Item name="PaiementClient" title="menu.admin.paiementC" page="/admin/paiementsClient"/>
+            <Item name="PaiementFournisseur" title="menu.admin.paiementF" page="/admin/paiementsFournisseur"/>
+            <Item name="PrelevementCaisse" title="menu.admin.prelevement" page="/admin/prelevementsCaisse"/>
         </Menu>
         <Menu name="Logout" title="user.logout" page="/logout" roles="ROLE_ADMIN,ROLE_USER"/>
     </Menus>

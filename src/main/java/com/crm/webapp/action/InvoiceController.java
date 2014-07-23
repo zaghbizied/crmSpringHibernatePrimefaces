@@ -11,12 +11,10 @@ import com.crm.jasper.Item;
 import com.crm.model.Client;
 import com.crm.model.Invoice;
 import com.crm.model.OpVente;
-import com.crm.model.Produit;
 import com.crm.model.Vente;
-import com.crm.model.lazy.InvoiceLazyModel;
-import com.crm.model.lazy.OpVenteLazyModel;
 import com.crm.service.ClientManager;
 import com.crm.service.InvoiceManager;
+import com.crm.service.OpVenteManager;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -24,12 +22,16 @@ import java.io.OutputStream;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import net.sf.dynamicreports.jasper.builder.JasperReportBuilder;
 import net.sf.dynamicreports.report.exception.DRException;
+import org.primefaces.model.LazyDataModel;
+import org.primefaces.model.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
@@ -42,9 +44,10 @@ import org.springframework.stereotype.Component;
 @Component("invoiceController")
 @Scope("view")
 public class InvoiceController extends BasePage implements Serializable{
-    private OpVenteLazyModel opVentes=new OpVenteLazyModel();
-    private InvoiceLazyModel invoices=new InvoiceLazyModel();
+    private LazyDataModel<OpVente> opVentes;
+    private LazyDataModel<Invoice> invoices;
     private ClientManager clientManager;
+    private OpVenteManager opVenteManager;
     private InvoiceManager invoiceManager;
     private List<Client> clients=new ArrayList<>();
     private Invoice newInvoice;
@@ -58,15 +61,20 @@ public class InvoiceController extends BasePage implements Serializable{
     }
     
     @Autowired
+    public void setOpVenteManager(@Qualifier("opVenteManager")OpVenteManager opVenteManager) {
+        this.opVenteManager = opVenteManager;
+    }
+    
+    @Autowired
     public void setInvoiceManager(@Qualifier("invoiceManager")InvoiceManager invoiceManager) {
         this.invoiceManager = invoiceManager;
     }
 
-    public OpVenteLazyModel getOpVentes() {
+    public LazyDataModel<OpVente> getOpVentes() {
         return opVentes;
     }
 
-    public void setOpVentes(OpVenteLazyModel opVentes) {
+    public void setOpVentes(LazyDataModel<OpVente> opVentes) {
         this.opVentes = opVentes;
     }
 
@@ -102,11 +110,11 @@ public class InvoiceController extends BasePage implements Serializable{
         this.selOpVentes = selOpVentes;
     }
 
-    public InvoiceLazyModel getInvoices() {
+    public LazyDataModel<Invoice> getInvoices() {
         return invoices;
     }
 
-    public void setInvoices(InvoiceLazyModel invoices) {
+    public void setInvoices(LazyDataModel<Invoice> invoices) {
         this.invoices = invoices;
     }
 
@@ -119,26 +127,84 @@ public class InvoiceController extends BasePage implements Serializable{
     }
     
     public void search() {
-    	invoices=new InvoiceLazyModel();
-        List<Invoice> list=new ArrayList<>();
-    	for(Invoice i:invoiceManager.getAll()){
-    		boolean match=true;
-                if(searchObject.getClient()!=null&&i.getClient().getId()!=searchObject.getClient().getId())match=false;
-    		if(searchObject.getDateFact()!=null&&i.getDateFact()!=searchObject.getDateFact())match=false;
-    		if(match)list.add(i);
-    	}	
-        invoices=new InvoiceLazyModel(list);
+       System.out.println("searching");
+        if(searchObject.getClient()!=null){
+            if(searchObject.getDateFact()!=null){
+                this.invoices = new LazyDataModel<Invoice>(){
+                private static final long    serialVersionUID    = 1L;
+                @Override
+                public List<Invoice> load(int first, int pageSize, String sortField, SortOrder sortOrder, Map<String, String> filters) {
+                            List<Invoice> result = invoiceManager.getLazyByDateByClient(searchObject.getDateFact(),searchObject.getClient(),first, pageSize, sortField, sortOrder, filters);
+                            return result;
+                }
+                };
+                opVentes.setRowCount(invoiceManager.countByDateByClient(searchObject.getDateFact(),searchObject.getClient()));
+            }
+            else{
+                this.invoices = new LazyDataModel<Invoice>(){
+                private static final long    serialVersionUID    = 1L;
+                @Override
+                public List<Invoice> load(int first, int pageSize, String sortField, SortOrder sortOrder, Map<String, String> filters) {
+                    List<Invoice> result = invoiceManager.getLazyByClient(searchObject.getClient(),first, pageSize, sortField, sortOrder, filters);
+                    return result;
+                }
+                };
+                invoices.setRowCount(invoiceManager.countByClient(searchObject.getClient()));
+            }
+        }
+        else{
+           if(searchObject.getDateFact()!=null){
+                this.invoices = new LazyDataModel<Invoice>(){
+                private static final long    serialVersionUID    = 1L;
+                @Override
+                public List<Invoice> load(int first, int pageSize, String sortField, SortOrder sortOrder, Map<String, String> filters) {
+                            System.out.println("loading by date "+first+" "+pageSize);
+                            List<Invoice> result = invoiceManager.getLazyByDate(searchObject.getDateFact(),first, pageSize, sortField, sortOrder, filters);
+                            return result;
+                        }
+                };
+                invoices.setRowCount(invoiceManager.countByDate(searchObject.getDateFact()));
+            }
+           else{
+               this.invoices = new LazyDataModel<Invoice>(){
+                private static final long    serialVersionUID    = 1L;
+                @Override
+                public List<Invoice> load(int first, int pageSize, String sortField, SortOrder sortOrder, Map<String, String> filters) {
+                            List<Invoice> result = invoiceManager.getLazyAll(first, pageSize, sortField, sortOrder, filters);
+                            return result;
+                        }
+                };
+                invoices.setRowCount(invoiceManager.countAll());
+           }
+        }
+        
     }
     
     @PostConstruct
     public void init(){
         searchObject=new Invoice();
-        invoices=new InvoiceLazyModel(invoiceManager.getAll());
         clients=clientManager.getAll();
+        this.invoices = new LazyDataModel<Invoice>(){
+                private static final long    serialVersionUID    = 1L;
+                @Override
+                public List<Invoice> load(int first, int pageSize, String sortField, SortOrder sortOrder, Map<String, String> filters) {
+                    List<Invoice> result = invoiceManager.getLazyByDate(new Date(System.currentTimeMillis()),first, pageSize, sortField, sortOrder, filters);
+                    return result;
+                }
+        };
+        invoices.setRowCount(invoiceManager.countByDate(new Date(System.currentTimeMillis())));
     }
     
     public void onClientSelect(){
-        opVentes=new OpVenteLazyModel(new ArrayList<>(newInvoice.getClient().getOpVentes()));
+        this.opVentes = new LazyDataModel<OpVente>(){
+                private static final long    serialVersionUID    = 1L;
+                @Override
+                public List<OpVente> load(int first, int pageSize, String sortField, SortOrder sortOrder, Map<String, String> filters) {
+                    List<OpVente> result = opVenteManager.getLazyByClient(newInvoice.getClient(), first, pageSize, sortField, sortOrder, filters);
+                    return result;
+                }
+        };
+        opVentes.setRowCount(opVenteManager.countByClient(newInvoice.getClient()));
     }
     
     public void prepareAdd(){

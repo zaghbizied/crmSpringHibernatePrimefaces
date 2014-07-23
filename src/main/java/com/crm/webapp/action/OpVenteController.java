@@ -11,7 +11,6 @@ import com.crm.model.OpVente;
 import com.crm.model.PrixClient;
 import com.crm.model.Produit;
 import com.crm.model.Vente;
-import com.crm.model.lazy.OpVenteLazyModel;
 import com.crm.service.AchatManager;
 import com.crm.service.ClientManager;
 import com.crm.service.NumTelManager;

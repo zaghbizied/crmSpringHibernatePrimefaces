@@ -7,7 +7,6 @@ package com.crm.webapp.action;
 import com.crm.model.Fournisseur;
 import com.crm.model.OpAchat;
 import com.crm.model.PaiementFournisseur;
-import com.crm.model.lazy.OpAchatLazyModel;
 import com.crm.service.FournisseurManager;
 import com.crm.service.OpAchatManager;
 import com.crm.service.PaiementFournisseurManager;
@@ -20,8 +19,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.PostConstruct;
-import javax.faces.context.FacesContext;
-import org.primefaces.component.datatable.DataTable;
 import org.primefaces.model.LazyDataModel;
 import org.primefaces.model.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +38,6 @@ public class PaiementFournisseurController extends BasePage implements Serializa
     private PaiementFournisseurManager paiementFournisseurManager;
     private FournisseurManager fournisseurManager;
     private OpAchatManager opAchatManager;
-    private OpAchatLazyModel opAchats;
     private PaiementFournisseur searchObject;
     private Fournisseur selectedFournisseur;
     private List<Fournisseur> fournisseurs=new ArrayList<>();
@@ -172,7 +168,6 @@ public class PaiementFournisseurController extends BasePage implements Serializa
     
     public void prepareAdd(){
         newPaiementFournisseur=new PaiementFournisseur();
-        opAchats=new OpAchatLazyModel();
         displayFiche=false;
     }
     
@@ -209,14 +204,6 @@ public class PaiementFournisseurController extends BasePage implements Serializa
 
     public void setNewPaiementFournisseur(PaiementFournisseur newPaiementFournisseur) {
         this.newPaiementFournisseur = newPaiementFournisseur;
-    }
-
-    public OpAchatLazyModel getOpAchats() {
-        return opAchats;
-    }
-
-    public void setOpAchats(OpAchatLazyModel opAchats) {
-        this.opAchats = opAchats;
     }
 
     public Fournisseur getSelectedFournisseur() {

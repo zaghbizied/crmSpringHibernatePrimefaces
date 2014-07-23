@@ -24,7 +24,7 @@
                                 </h:panelGrid>
                             </p:fieldset>  
                             <p:separator/>
-                            <p:dataTable id="fournisseurs" var="fournisseur" value="#{fournisseurController.fournisseurs}" rows="5" lazy="true">
+                            <p:dataTable id="fournisseurs" var="fournisseur" value="#{fournisseurController.fournisseurs}" rows="5" paginator="true">
                                         <p:column style="text-align:center" width="8%">
                                             <f:facet name="header">
                                                 <p:column sortBy="nom">
@@ -83,7 +83,7 @@
                                                 </div>
                                         </f:facet>
                             </p:dataTable>
-                            <p:remoteCommand name="updateList" action="#{fournisseurController.init}" update="fournisseurs" />
+                            <p:remoteCommand name="updateList" action="#{fournisseurController.search}" update="fournisseurs" />
                  </h:form>
         </div>
     </ui:define>

@@ -5,11 +5,14 @@
 package com.crm.webapp.action;
 
 import com.crm.model.PrelevementCaisse;
-import com.crm.model.lazy.PrelevementCaisseLazyModel;
 import com.crm.service.PrelevementCaisseManager;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import javax.annotation.PostConstruct;
+import org.primefaces.model.LazyDataModel;
+import org.primefaces.model.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
@@ -23,7 +26,7 @@ import org.springframework.stereotype.Component;
 @Scope("view")
 public class PrelevementCaisseController extends BasePage implements Serializable {
     private PrelevementCaisseManager prelevementCaisseManager;
-    private PrelevementCaisseLazyModel prelevements;
+    private LazyDataModel<PrelevementCaisse> prelevements;
     private PrelevementCaisse searchObject;
     private PrelevementCaisse newPrelevement;
     private PrelevementCaisse selectedPrelevement;
@@ -33,11 +36,11 @@ public class PrelevementCaisseController extends BasePage implements Serializabl
         this.prelevementCaisseManager = prelevementCaisseManager;
     }
 
-    public PrelevementCaisseLazyModel getPrelevements() {
+    public LazyDataModel<PrelevementCaisse> getPrelevements() {
         return prelevements;
     }
 
-    public void setPrelevements(PrelevementCaisseLazyModel prelevements) {
+    public void setPrelevements(LazyDataModel<PrelevementCaisse> prelevements) {
         this.prelevements = prelevements;
     }
 
@@ -67,10 +70,30 @@ public class PrelevementCaisseController extends BasePage implements Serializabl
     
     public void search(){
         if(searchObject!=null&&searchObject.getDatePrelevement()!=null){
-            prelevements=new PrelevementCaisseLazyModel(prelevementCaisseManager.getByDate(searchObject.getDatePrelevement()));
+            this.prelevements = new LazyDataModel<PrelevementCaisse>(){
+                private static final long    serialVersionUID    = 1L;
+                @Override
+                public List<PrelevementCaisse> load(int first, int pageSize, String sortField, SortOrder sortOrder, Map<String, String> filters) {
+                            System.out.println("loading by date "+first+" "+pageSize);
+                            List<PrelevementCaisse> result = prelevementCaisseManager.getLazyByDate(searchObject.getDatePrelevement(),first, pageSize, sortField, sortOrder, filters);
+                            return result;
+                        }
+                };
+            prelevements.setRowCount(prelevementCaisseManager.countByDate(searchObject.getDatePrelevement()));
         }
-        else
-            prelevements=new PrelevementCaisseLazyModel();
+        else{
+            this.prelevements = new LazyDataModel<PrelevementCaisse>(){
+                private static final long    serialVersionUID    = 1L;
+                @Override
+                public List<PrelevementCaisse> load(int first, int pageSize, String sortField, SortOrder sortOrder, Map<String, String> filters) {
+                            System.out.println("loading by date "+first+" "+pageSize);
+                            List<PrelevementCaisse> result = prelevementCaisseManager.getLazyAll(first, pageSize, sortField, sortOrder, filters);
+                            return result;
+                        }
+                };
+            prelevements.setRowCount(prelevementCaisseManager.countAll());
+        }
+            
     }
     
     public void prepareAdd(){
@@ -85,7 +108,17 @@ public class PrelevementCaisseController extends BasePage implements Serializabl
     public void init(){
         searchObject=new PrelevementCaisse();
         searchObject.setDatePrelevement(new Date(System.currentTimeMillis()));
-        prelevements=new PrelevementCaisseLazyModel(prelevementCaisseManager.getByDate(searchObject.getDatePrelevement()));
+        this.prelevements = new LazyDataModel<PrelevementCaisse>(){
+                private static final long    serialVersionUID    = 1L;
+                @Override
+                public List<PrelevementCaisse> load(int first, int pageSize, String sortField, SortOrder sortOrder, Map<String, String> filters) {
+                            System.out.println("loading by date "+first+" "+pageSize);
+                            List<PrelevementCaisse> result = prelevementCaisseManager.getLazyByDate(searchObject.getDatePrelevement(),first, pageSize, sortField, sortOrder, filters);
+                            return result;
+                        }
+                };
+        prelevements.setRowCount(prelevementCaisseManager.countByDate(searchObject.getDatePrelevement()));
+        
     }
     
     public void saveNew(){

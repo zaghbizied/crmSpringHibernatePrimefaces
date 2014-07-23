@@ -7,7 +7,6 @@ package com.crm.webapp.action;
 import com.crm.model.Fournisseur;
 import com.crm.model.PrixFournisseur;
 import com.crm.model.Produit;
-import com.crm.model.lazy.FournisseurLazyModel;
 import com.crm.service.FournisseurManager;
 import com.crm.service.PrixFournisseurManager;
 import com.crm.service.ProduitManager;
@@ -27,7 +26,7 @@ import org.springframework.stereotype.Component;
 @Component("fournisseurController")
 @Scope("view")
 public class FournisseurController extends BasePage implements Serializable{
-    private FournisseurLazyModel fournisseurs=new FournisseurLazyModel();
+    private List<Fournisseur> fournisseurs=new ArrayList<>();
     private FournisseurManager fournisseurManager;
     private PrixFournisseurManager prixFournisseurManager;
     private Fournisseur searchObject;
@@ -51,11 +50,11 @@ public class FournisseurController extends BasePage implements Serializable{
         this.prixFournisseurManager=prixFournisseurManager;
     }
     
-    public FournisseurLazyModel getFournisseurs() {
+    public List<Fournisseur> getFournisseurs() {
         return fournisseurs;
     }
 
-    public void setFournisseurs(FournisseurLazyModel fournisseurs) {
+    public void setFournisseurs(List<Fournisseur> fournisseurs) {
         this.fournisseurs = fournisseurs;
     }
     
@@ -85,22 +84,20 @@ public class FournisseurController extends BasePage implements Serializable{
     
     @PostConstruct
     public void init(){
-        fournisseurs=new FournisseurLazyModel(fournisseurManager.getAll());
+        fournisseurs=fournisseurManager.getAll();
         searchObject=new Fournisseur();
     }
    
     public void search() {
-    	fournisseurs=new FournisseurLazyModel();
-        List<Fournisseur> lst=new ArrayList<>();
+    	fournisseurs=new ArrayList<>();
     	for(Fournisseur c:fournisseurManager.getAll()){
     		boolean match=true;
     		if(searchObject!=null){
     			if(!c.getNom().toLowerCase().contains(searchObject.getNom().toLowerCase()))match=false;
     			if(!c.getVille().toLowerCase().contains(searchObject.getVille().toLowerCase()))match=false;
     		}
-    		if(match)lst.add(c);
+    		if(match)fournisseurs.add(c);
     	}	
-        fournisseurs=new FournisseurLazyModel(lst);
     }
     
     public void delete() {

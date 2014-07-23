@@ -9,8 +9,6 @@ import com.crm.model.NumTel;
 import com.crm.model.Operateur;
 import com.crm.model.PrixClient;
 import com.crm.model.Produit;
-import com.crm.model.Vente;
-import com.crm.model.lazy.ClientLazyModel;
 import com.crm.service.ClientManager;
 import com.crm.service.NumTelManager;
 import com.crm.service.OperateurManager;
@@ -32,7 +30,7 @@ import org.springframework.stereotype.Component;
 @Component("clientController")
 @Scope("view")
 public class ClientController extends BasePage implements Serializable{
-    private ClientLazyModel clients=new ClientLazyModel();
+    private List<Client> clients=new ArrayList<>();
     private ClientManager clientManager;
     private PrixClientManager prixClientManager;
     private NumTelManager numTelManager;
@@ -54,11 +52,11 @@ public class ClientController extends BasePage implements Serializable{
         this.newNumTel = newNumTel;
     }
 
-    public ClientLazyModel getClients() {
+    public List<Client> getClients() {
         return clients;
     }
 
-    public void setClients(ClientLazyModel clients) {
+    public void setClients(List<Client> clients) {
         this.clients = clients;
     }
     
@@ -137,7 +135,7 @@ public class ClientController extends BasePage implements Serializable{
     
     @PostConstruct
     public void init(){
-        clients=new ClientLazyModel(clientManager.getAll());
+        clients=clientManager.getAll();
         searchObject=new Client();
         operateurs=operateurManager.getAll();
     }
@@ -151,17 +149,15 @@ public class ClientController extends BasePage implements Serializable{
     }
    
     public void search() {
-    	clients=new ClientLazyModel();
-        List<Client> lst=new ArrayList<>();
+    	clients=new ArrayList<>();
     	for(Client c:clientManager.getAll()){
     		boolean match=true;
     		if(searchObject!=null){
     			if(!c.getNom().toLowerCase().contains(searchObject.getNom().toLowerCase()))match=false;
     			if(!c.getPrenom().toLowerCase().contains(searchObject.getPrenom().toLowerCase()))match=false;
     		}
-    		if(match)lst.add(c);
+    		if(match)clients.add(c);
     	}	
-        clients=new ClientLazyModel(lst);
     }
     
     public void delete() {

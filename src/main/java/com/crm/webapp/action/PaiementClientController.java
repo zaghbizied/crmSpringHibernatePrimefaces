@@ -7,7 +7,6 @@ package com.crm.webapp.action;
 import com.crm.model.Client;
 import com.crm.model.OpVente;
 import com.crm.model.PaiementClient;
-import com.crm.model.lazy.OpVenteLazyModel;
 import com.crm.service.ClientManager;
 import com.crm.service.OpVenteManager;
 import com.crm.service.PaiementClientManager;
@@ -40,7 +39,6 @@ public class PaiementClientController extends BasePage implements Serializable{
     private PaiementClientManager paiementClientManager;
     private ClientManager clientManager;
     private OpVenteManager opVenteManager;
-    private OpVenteLazyModel opVentes;
     private PaiementClient searchObject;
     private List<Client> clients=new ArrayList<>();
     private boolean displayFiche;
@@ -209,15 +207,7 @@ public class PaiementClientController extends BasePage implements Serializable{
     public void setNewPaiementClient(PaiementClient newPaiementClient) {
         this.newPaiementClient = newPaiementClient;
     }
-
-    public OpVenteLazyModel getOpVentes() {
-        return opVentes;
-    }
-
-    public void setOpVentes(OpVenteLazyModel opVentes) {
-        this.opVentes = opVentes;
-    }
-
+    
     public List<Client> getClients() {
         return clients;
     }
