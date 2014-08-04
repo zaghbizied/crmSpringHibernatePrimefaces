@@ -23,6 +23,7 @@
                     </f:facet>
                     <p:commandButton value="Modifier" icon="iconEdit" action="#{produitController.prepareUpdate(produit)}"
                                             update=":editForm:displayEdit" oncomplete="PF('editProduitWidget').show()">
+                        <p:resetInput target=":editForm" />
                     </p:commandButton>
                 </p:column>
                 <p:column style="text-align: center;">
@@ -45,11 +46,13 @@
                 	<div align="center">
                         <p:commandButton value="Ajouter" icon="iconAdd" action="#{produitController.prepareAdd}"
                                             update=":addForm:displayAdd" oncomplete="PF('addProduitWidget').show()">
+                            <p:resetInput target=":addForm" />
                         </p:commandButton>
                 	</div>
                 </f:facet>
                 
             </p:dataTable>
+            <p:remoteCommand name="updateList" action="#{produitController.init}" update="produits" />
             </h:form>
         </div>
     </ui:define>
@@ -58,13 +61,14 @@
                showEffect="clip" hideEffect="fold">  
                <h:form id="editForm">
                     <h:panelGrid id="displayEdit" columns="2" cellpadding="4" width="100%">  
-		        <h:outputLabel for="nom" value="#{text['produit.description']}"/>
-			<p:inputText id="nom" value="#{produitController.selectedProduit.description}" required="true" maxlength="40"/>
-                        <h:outputLabel for="nom" value="Recharge électronique"/>
-                        <p:selectBooleanCheckbox value="#{produitController.selectedProduit.recharge}" />
+                        <p:messages id="editMessages"/>
+		        <h:outputLabel for="description" value="#{text['produit.description']}"/>
+                        <p:inputText id="description" value="#{produitController.selectedProduit.description}" required="true" maxlength="100" requiredMessage="le champ description est requis"/>
+                        <h:outputLabel for="rechElec" value="Recharge électronique"/>
+                        <p:selectBooleanCheckbox id="rechElec" value="#{produitController.selectedProduit.recharge}"/>
                         <h:outputLabel for="operateur" value="#{text['produit.operateur']}"/>
                         <p:selectOneMenu id="operateur" value="#{produitController.selectedProduit.operateur}" converter="#{operateurConverter}" panelStyle="width:160px"  
-                             effect="fade" var="o" style="width:160px"  filter="true" filterMatchMode="contains">  
+                             effect="fade" var="o" style="width:160px"  filter="true" filterMatchMode="contains" required="true" requiredMessage="le champ opérateur est requis">  
                             <f:selectItem itemLabel="Choisir un opérateur" itemValue="" />  
 			    <f:selectItems value="#{produitController.operateurs}" var="operateur" itemLabel="#{operateur.nom}" itemValue="#{operateur}"/>  
 			    <p:column>  
@@ -73,24 +77,42 @@
                         </p:selectOneMenu>
 			<f:facet name="footer">
                             <div align="center">
-                                <p:commandButton value="Enregistrer" action="#{produitController.update}" icon="ui-icon-disk" update=":form:produits" process="@this :editForm:displayEdit" oncomplete="PF('editProduitWidget').hide()"/>
-                                <p:commandButton value="Supprimer" action="#{produitController.delete}" icon="iconDelete" update=":form:produits" process="@this :editForm:displayEdit" oncomplete="PF('editProduitWidget').hide()"/> 
+                                <p:commandButton value="Enregistrer" action="#{produitController.update}" icon="ui-icon-disk" process="@this :editForm:displayEdit" update="@(.ui-messages)" oncomplete="handleEditProduitRequest(xhr, status, args);"/>
+                                <p:commandButton value="Supprimer" action="#{produitController.delete}" icon="iconDelete" process="@this :editForm:displayEdit" oncomplete="updateList();PF('editProduitWidget').hide();" immediate="true"> 
+                                    <p:confirm header="Confirmation" message="Êtes-vous sûr de vouloir supprimer ce produit?" icon="ui-icon-alert" />
+                                </p:commandButton>
                             </div>
                         </f:facet>
                     </h:panelGrid>  
+                    <p:confirmDialog global="true" showEffect="fade" hideEffect="explode">
+                        <p:commandButton value="Oui" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" />
+                        <p:commandButton value="Non" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+                    </p:confirmDialog>
                </h:form>
+               <script type="text/javascript">  
+                    function handleEditProduitRequest(xhr, status, args) {  
+                        if(!args.validationFailed) {  
+                            updateList();
+                            PF('editProduitWidget').hide();  
+                        }   
+                        else {  
+                            PF('editProduitWidget').jq.effect("shake", { times:5 }, 100);  
+                        }  
+                    }  
+               </script>
             </p:dialog>  
         <p:dialog id="addProduitDialog" dynamic="true" appendToBody="false" header="Nouveau Produit" widgetVar="addProduitWidget" resizable="false" width="50%" height="100%"  
                showEffect="clip" hideEffect="fold">
                <h:form id="addForm">  
+                    <p:messages id="addMessages"/>
                     <h:panelGrid id="displayAdd" columns="2" cellpadding="4" width="100%">
                     	<h:outputLabel for="nom" value="#{text['produit.description']}"/>
-			<p:inputText id="nom" value="#{produitController.newProduit.description}" required="true" maxlength="40"/>
+			<p:inputText id="nom" value="#{produitController.newProduit.description}" required="true" maxlength="100" requiredMessage="le champ description est requis"/>
                         <h:outputLabel for="nom" value="Recharge électronique"/>
                         <p:selectBooleanCheckbox value="#{produitController.newProduit.recharge}" />
                         <h:outputLabel for="operateur" value="#{text['produit.operateur']}"/>
                         <p:selectOneMenu id="operateur" value="#{produitController.newProduit.operateur}" converter="#{operateurConverter}" panelStyle="width:160px"  
-                             effect="fade" var="o" style="width:160px"  filter="true" filterMatchMode="contains">  
+                                         effect="fade" var="o" style="width:160px"  filter="true" filterMatchMode="contains" required="true" requiredMessage="le champ opérateur est requis">  
                             <f:selectItem itemLabel="Choisir un opérateur" itemValue="" />  
 			    <f:selectItems value="#{produitController.operateurs}" var="operateur" itemLabel="#{operateur.nom}" itemValue="#{operateur}"/>  
 			    <p:column>  
@@ -99,11 +121,22 @@
                         </p:selectOneMenu>
                     	<f:facet name="footer">
                             <div align="center">
-                                <p:commandButton value="Enregistrer" action="#{produitController.saveNew}" update=":form:produits" oncomplete="PF('addProduitWidget').hide()" icon="ui-icon-disk" process="@this :addForm:displayAdd"/>
+                                <p:commandButton value="Enregistrer" action="#{produitController.saveNew}" update="@(.ui-messages)" icon="ui-icon-disk" process="@this :addForm:displayAdd" oncomplete="handleAddProduitRequest(xhr, status, args);"/>
                             </div>
                         </f:facet>
                     </h:panelGrid>  
                </h:form>
+               <script type="text/javascript">  
+                    function handleAddProduitRequest(xhr, status, args) {  
+                        if(!args.validationFailed) {  
+                            updateList();
+                            PF('addProduitWidget').hide();  
+                        }   
+                        else {  
+                            PF('addProduitWidget').jq.effect("shake", { times:5 }, 100);  
+                        }  
+                    }  
+               </script>   
             </p:dialog>  
     </ui:define>
 </ui:composition>

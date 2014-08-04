@@ -52,6 +52,7 @@
                             </f:facet>
                             <p:commandButton icon="iconEdit" action="#{prelevementCaisseController.prepareUpdate(prelevement)}" process="@this :form:prelevements"
                              update=":editForm:displayEdit" oncomplete="PF('editPrelevementWidget').show()">
+                                <p:resetInput target=":editForm" />
                             </p:commandButton>
                         </p:column>
                         
@@ -59,6 +60,7 @@
                             <div align="left">
                                <p:commandButton value="Nouveau" icon="iconAdd" action="#{prelevementCaisseController.prepareAdd}" process="@this :form:prelevements"
                                   update=":addForm" oncomplete="PF('addPrelevementWidget').show()">
+                                   <p:resetInput target=":addForm" />
                                </p:commandButton>
                             </div>
                         </f:facet>
@@ -76,37 +78,71 @@
     <ui:define name="dialogs">
             <p:dialog id="addPrelevementDialog" dynamic="true" appendToBody="false" header="Nouveau Prélèvement Caisse" widgetVar="addPrelevementWidget" resizable="false" showEffect="clip" hideEffect="fold">
                 <h:form id="addForm">
+                        <p:messages id="addMessages"/>
                         <h:panelGrid id="displayAdd" columns="2" cellpadding="10">
                             <h:outputLabel for="montant" value="Montant"/>
-                            <p:inputText id="montant" value="#{prelevementCaisseController.newPrelevement.montant}" required="true">
+                            <p:inputText id="montant" value="#{prelevementCaisseController.newPrelevement.montant}" required="true" requiredMessage="le champ montant est requis" converterMessage="le montant saisi n’a pas pu être interprété en tant que valeur monétaire." validatorMessage="le montant saisie est inférieur à la valeur minimale autorisée">
+                                <f:convertNumber currencySymbol="D.T" maxFractionDigits="3" type="currency" />
+                                <f:validateDoubleRange minimum="0.001"/>
                             </p:inputText>
                             <h:outputLabel for="motif" value="Motif"/>
-                            <p:inputText id="motif" value="#{prelevementCaisseController.newPrelevement.motif}" required="true">
+                            <p:inputText id="motif" value="#{prelevementCaisseController.newPrelevement.motif}" maxlength="255">
                             </p:inputText>
                             <f:facet name="footer">
                                 <div align="center">
-                                    <p:commandButton icon="ui-icon-disk" value="Enregister" update=":growl" action="#{prelevementCaisseController.saveNew}" oncomplete="PF('addPrelevementWidget').hide();updateList();" />
+                                    <p:commandButton value="Enregister" action="#{prelevementCaisseController.saveNew}" update=":addForm:displayAdd,@(.ui-messages)" icon="ui-icon-disk" process="@this :addForm:displayAdd" oncomplete="handleAddRequest(xhr, status, args);" >
+                                        <p:resetInput target="montant" />
+                                    </p:commandButton>
                                 </div>
                             </f:facet>
                         </h:panelGrid>
                 </h:form>
+                
+                <script type="text/javascript">  
+                    function handleAddRequest(xhr, status, args) {  
+                        if(!args.validationFailed) {  
+                            updateList();
+                            PF('addPrelevementWidget').hide();  
+                        }   
+                        else {  
+                            PF('addPrelevementWidget').jq.effect("shake", { times:5 }, 100);  
+                        }  
+                    }  
+               </script>   
             </p:dialog>
             <p:dialog id="editPrelevementDialog" dynamic="true" appendToBody="false" header="Editer Prélèvement Caisse" widgetVar="editPrelevementWidget" resizable="false" showEffect="clip" hideEffect="fold">
                 <h:form id="editForm">
+                        <p:messages id="editMessages"/>
                         <h:panelGrid id="displayEdit" columns="2" cellpadding="10">
                             <h:outputLabel for="montant" value="Montant"/>
-                            <p:inputText id="montant" value="#{prelevementCaisseController.selectedPrelevement.montant}" required="true">
+                            <p:inputText id="montant" value="#{prelevementCaisseController.selectedPrelevement.montant}" required="true" requiredMessage="le champ montant est requis" converterMessage="le montant saisi n’a pas pu être interprété en tant que valeur monétaire." validatorMessage="le montant saisie est inférieur à la valeur minimale autorisée">
+                                <f:convertNumber currencySymbol="D.T" maxFractionDigits="3" type="currency" />
+                                <f:validateDoubleRange minimum="0.001"/>
                             </p:inputText>
                             <h:outputLabel for="motif" value="Motif"/>
-                            <p:inputText id="motif" value="#{prelevementCaisseController.selectedPrelevement.motif}" required="true">
+                            <p:inputText id="motif" value="#{prelevementCaisseController.selectedPrelevement.motif}" maxlength="255">
                             </p:inputText>
                             <f:facet name="footer">
                                 <div align="center">
-                                    <p:commandButton icon="ui-icon-disk" value="Enregister" update=":growl" action="#{prelevementCaisseController.update}" oncomplete="PF('editPrelevementWidget').hide();updateList();" />
+                                    <p:commandButton value="Enregister" action="#{prelevementCaisseController.update}" update=":editForm:displayEdit,@(.ui-messages)" icon="ui-icon-disk" process="@this :editForm:displayEdit" oncomplete="handleEditRequest(xhr, status, args);">
+                                        <p:resetInput target="montant" />
+                                    </p:commandButton>
+                                    
                                 </div>
                             </f:facet>
                         </h:panelGrid>
                 </h:form>
+                <script type="text/javascript">  
+                    function handleEditRequest(xhr, status, args) {  
+                        if(!args.validationFailed) {  
+                            updateList();
+                            PF('editPrelevementWidget').hide();  
+                        }   
+                        else {  
+                            PF('editPrelevementWidget').jq.effect("shake", { times:5 }, 100);  
+                        }  
+                    }  
+               </script>   
             </p:dialog>
     </ui:define>
 </ui:composition>

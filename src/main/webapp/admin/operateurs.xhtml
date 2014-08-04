@@ -14,7 +14,7 @@
             <h:form id="form">
             
             <p:dataTable id="operateurs" var="operateur" value="#{operateurController.operateurs}"
-                         rows="25" style="width: 40%;text-align: center;">
+                         rows="25" style="width: 40%;text-align: center;" emptyMessage="aucun opérateur enregistré">
                 <p:column width="8%" style="text-align: center;">
                     <f:facet name="header">
                         <p:column sortBy="id">
@@ -22,7 +22,8 @@
                         </p:column>
                     </f:facet>
                     <p:commandButton value="Modifier" icon="iconEdit" action="#{operateurController.prepareUpdate(operateur)}"
-                                            update=":editForm:displayEdit" oncomplete="PF('editOperateurWidget').show()">
+                                            update=":editForm" oncomplete="PF('editOperateurWidget').show()">
+                        <p:resetInput target=":editForm" />
                     </p:commandButton>
                 </p:column>
                 
@@ -34,15 +35,17 @@
                     </f:facet>
                     <h:outputText value="#{operateur.nom}" escape="true"/>
                 </p:column>
-                <f:facet name="footer">
-                	<div align="center">
-                        <p:commandButton value="Ajouter" icon="iconAdd" action="#{operateurController.prepareAdd}"
-                                            update=":addForm:displayAdd" oncomplete="PF('addOperateurWidget').show()">
-                        </p:commandButton>
+                <f:facet name="header">
+                	<div align="left">
+                            <p:commandButton value="Ajouter" icon="iconAdd" action="#{operateurController.prepareAdd}"
+                                                update=":addForm" oncomplete="PF('addOperateurWidget').show()">
+                                <p:resetInput target=":addForm" />
+                            </p:commandButton>
                 	</div>
                 </f:facet>
                 
             </p:dataTable>
+            <p:remoteCommand name="updateList" action="#{operateurController.init}" update="operateurs" />
             </h:form>
             
         
@@ -52,31 +55,61 @@
         <p:dialog id="editOperateurDialog" dynamic="true" appendToBody="false" header="#{text['operateurDetail.heading']}" widgetVar="editOperateurWidget" resizable="false"  
                showEffect="clip" hideEffect="fold">  
                <h:form id="editForm">
+                    <p:messages id="editMessages"/>
                     <h:panelGrid id="displayEdit" columns="2" cellpadding="4" width="100%">  
 		        <h:outputLabel for="name" value="#{text['operateur.name']}"/>
-			<p:inputText id="name" value="#{operateurController.selectedOperateur.nom}" required="true" maxlength="255"/>
+                        <p:inputText id="name" value="#{operateurController.selectedOperateur.nom}" required="true" maxlength="20" requiredMessage="le champ nom est requis"/>
 			<f:facet name="footer">
                             <div align="center">
-                                <p:commandButton value="Enregistrer" action="#{operateurController.update}" icon="ui-icon-disk" update=":form:operateurs" process="@this :editForm:displayEdit" oncomplete="PF('editOperateurWidget').hide()"/>
-                                <p:commandButton value="Supprimer" action="#{operateurController.delete}" icon="iconDelete" update=":form:operateurs" process="@this :editForm:displayEdit" oncomplete="PF('editOperateurWidget').hide()"/> 
+                                <p:commandButton value="Enregistrer" action="#{operateurController.update}" icon="ui-icon-disk" process="@this :editForm:displayEdit" update=":editForm:displayEdit,@(.ui-messages)" oncomplete="handleEditOperateurRequest(xhr, status, args);"/>
+                                <p:commandButton value="Supprimer" action="#{operateurController.delete}" icon="iconDelete" process="@this :editForm:displayEdit" oncomplete="updateList();PF('editOperateurWidget').hide();" immediate="true"> 
+                                    <p:confirm header="Confirmation" message="Êtes-vous sûr de vouloir supprimer cet opérateur?" icon="ui-icon-alert" />
+                                </p:commandButton>
                             </div>
                         </f:facet>
-                    </h:panelGrid>  
+                    </h:panelGrid>
+                    <p:confirmDialog global="true" showEffect="fade" hideEffect="explode">
+                        <p:commandButton value="Oui" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" />
+                        <p:commandButton value="Non" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+                    </p:confirmDialog>
                </h:form>
+               <script type="text/javascript">  
+                    function handleEditOperateurRequest(xhr, status, args) {  
+                        if(!args.validationFailed) {  
+                            updateList();
+                            PF('editOperateurWidget').hide();  
+                        }   
+                        else {  
+                            PF('editOperateurWidget').jq.effect("shake", { times:5 }, 100);  
+                        }  
+                    }  
+               </script>   
             </p:dialog>  
            <p:dialog id="addOperateurDialog" dynamic="true" appendToBody="false" header="Nouveau Opérateur" widgetVar="addOperateurWidget" resizable="false"  
                showEffect="clip" hideEffect="fold">
                <h:form id="addForm">  
+                    <p:messages id="addMessages"/>
                     <h:panelGrid id="displayAdd" columns="2" cellpadding="4" width="100%">
                     	<h:outputLabel for="namee" value="#{text['operateur.name']}"/>
-				        <p:inputText id="namee" value="#{operateurController.newOperateur.nom}" required="true" maxlength="255"/>
+                        <p:inputText id="namee" value="#{operateurController.newOperateur.nom}" required="true" maxlength="20" requiredMessage="le champ nom est requis"/>
                     	<f:facet name="footer">
                             <div align="center">
-                                <p:commandButton value="Enregistrer" action="#{operateurController.saveNew}" update=":form:operateurs" oncomplete="PF('addOperateurWidget').hide()" icon="ui-icon-disk" process="@this :addForm:displayAdd"/>
+                                <p:commandButton value="Enregistrer" action="#{operateurController.saveNew}" update=":addForm:displayAdd,@(.ui-messages)" icon="ui-icon-disk" process="@this :addForm:displayAdd" oncomplete="handleAddOperateurRequest(xhr, status, args);"/>
                             </div>
                         </f:facet>
                     </h:panelGrid>  
                </h:form>
+               <script type="text/javascript">  
+                    function handleAddOperateurRequest(xhr, status, args) {  
+                        if(!args.validationFailed) {  
+                            updateList();
+                            PF('addOperateurWidget').hide();  
+                        }   
+                        else {  
+                            PF('addOperateurWidget').jq.effect("shake", { times:5 }, 100);  
+                        }  
+                    }  
+               </script>   
             </p:dialog>  
     </ui:define>
 </ui:composition>

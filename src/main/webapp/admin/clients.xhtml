@@ -26,7 +26,7 @@
                                 </h:panelGrid>
                             </p:fieldset>  
                             <p:separator/>
-                            <p:dataTable id="clients" var="client" value="#{clientController.clients}" rows="5" paginator="true">
+                            <p:dataTable id="clients" var="client" value="#{clientController.clients}" rows="5" paginator="true" emptyMessage="Aucun client enregistré">
                                         <p:column style="text-align:center" width="8%">
                                             <f:facet name="header">
                                                 <p:column sortBy="nom">
@@ -73,7 +73,7 @@
                                                     <h:outputText value="#{text['client.numTels']}" />
                                                 </p:column>
                                             </f:facet>
-                                            <p:dataList value="#{client.nestedNumTels}" var="numTel" type="definition" >  
+                                            <p:dataList value="#{client.nestedNumTels}" var="numTel" type="definition" emptyMessage="Aucun numéro">  
                                                 #{numTel.numTel}
                                             </p:dataList>
                                         </p:column>
@@ -84,13 +84,15 @@
                                                 </p:column>
                                             </f:facet>
                                             <p:commandButton icon="iconEdit" action="#{clientController.prepareUpdate(client)}"
-                                                  update=":editForm:displayEdit" oncomplete="PF('editClientWidget').show()">
+                                                  update=":editForm" oncomplete="PF('editClientWidget').show()">
+                                                <p:resetInput target=":editForm" />
                                             </p:commandButton>
                                         </p:column>
-                                        <f:facet name="footer">
-                                                <div align="center">
+                                        <f:facet name="header">
+                                                <div align="left">
                                                         <p:commandButton value="Ajouter" icon="iconAdd" action="#{clientController.prepareAdd}"
-                                                                    update=":addClientDialog" oncomplete="PF('addClientWidget').show()">
+                                                                    update=":addForm" oncomplete="PF('addClientWidget').show()">
+                                                            <p:resetInput target=":addForm" />
                                                         </p:commandButton>
                                                 </div>
                                         </f:facet>
@@ -104,18 +106,18 @@
                showEffect="clip" hideEffect="fold" width="100%" height="500">  
                <p:scrollPanel mode="native">
                <h:form id="editForm">
-                    <p:growl id="messages" showDetail="true"/>  
+                    <p:messages id="editMessages"/>
                     <h:panelGrid id="displayEdit" columns="2" cellpadding="4" width="100%">  
-                        <h:outputLabel for="nom" value="#{text['client.nom']}"/>
-                        <p:inputText id="nom" value="#{clientController.selectedClient.nom}" />                                                    
-                        <h:outputLabel for="prenom" value="#{text['client.prenom']}"/>
-                        <p:inputText id="prenom" value="#{clientController.selectedClient.prenom}" /> 
-                        <h:outputLabel for="adresse" value="#{text['client.adresse']}"/>
-                        <p:inputTextarea id="adresse" value="#{clientController.selectedClient.address}" cols="80"/>
-                        <h:outputLabel for="ville" value="#{text['client.ville']}"/>
-                        <p:inputText id="ville" value="#{clientController.selectedClient.ville}" /> 
-                        <h:outputLabel for="email" value="#{text['client.email']}"/>
-                        <p:inputText id="email" value="#{clientController.selectedClient.email}" /> 
+                        <h:outputLabel for="nom_e" value="#{text['client.nom']}"/>
+                        <p:inputText id="nom_e" value="#{clientController.selectedClient.nom}" required="true" requiredMessage="Le champ nom est requis" maxlength="20"/>                                                    
+                        <h:outputLabel for="prenom_e" value="#{text['client.prenom']}"/>
+                        <p:inputText id="prenom_e" value="#{clientController.selectedClient.prenom}" required="true" requiredMessage="Le champ prénom est requis" maxlength="20"/> 
+                        <h:outputLabel for="adresse_e" value="#{text['client.adresse']}"/>
+                        <p:inputTextarea id="adresse_e" value="#{clientController.selectedClient.address}" cols="80" required="true" requiredMessage="Le champ adresse est requis" maxlength="255"/>
+                        <h:outputLabel for="ville_e" value="#{text['client.ville']}"/>
+                        <p:inputText id="ville_e" value="#{clientController.selectedClient.ville}" required="true" requiredMessage="Le champ ville est requis" maxlength="20"/> 
+                        <h:outputLabel for="email_e" value="#{text['client.email']}"/>
+                        <p:inputText id="email_e" value="#{clientController.selectedClient.email}" required="true" requiredMessage="Le champ email est requis" maxlength="40"/> 
                         <h:outputLabel for="prix" value="#{text['client.prix']}"/>
                         <p:dataGrid var="prixClient" value="#{clientController.prixClients}" columns="3"  
                             rows="15" paginator="true" id="prix"  
@@ -123,20 +125,22 @@
                             <p:panel header="#{prixClient.produit.description}" style="text-align:center">  
                                 <h:panelGrid columns="2" style="width:100%"> 
                                     <h:outputLabel for="prixUnit">Prix Unitaire</h:outputLabel>
-                                    <p:inputText id="prixUnit" value="#{prixClient.prixUnit}" required="true"/>  
+                                    <p:inputText id="prixUnit" value="#{prixClient.prixUnit}" converterMessage="le montant saisi n’a pas pu être interprété en tant que valeur monétaire.">
+                                        <f:convertNumber currencySymbol="D.T" maxFractionDigits="3" type="currency" />
+                                    </p:inputText>
                                 </h:panelGrid>  
                             </p:panel> 
                         </p:dataGrid>
                         <h:outputLabel for="numTels" value="#{text['client.numTels']}"/>
-                        <p:dataTable var="numTel" value="#{clientController.numTels}" id="numTels" editable="true">  
+                        <p:dataTable var="numTel" value="#{clientController.numTels}" id="numTels" editable="true" emptyMessage="Aucun numéro">  
                             <p:column headerText="Operateur" style="width:30%">  
                                 <p:cellEditor>  
                                     <f:facet name="output">  
                                         <h:outputText value="#{numTel.operateur.nom}" />  
                                     </f:facet>  
                                     <f:facet name="input">  
-                                        <p:selectOneMenu value="#{numTel.operateur}" converter="#{operateurConverter}" panelStyle="width:160px"  
-                                 	effect="fade" var="o" style="width:160px"  filter="true" filterMatchMode="contains">  
+                                        <p:selectOneMenu value="#{numTel.operateur}" converter="#{operateurConverter}" panelStyle="width:160px" requiredMessage="Le champ opérateur est requis" 
+                                                         effect="fade" var="o" style="width:160px"  filter="true" filterMatchMode="contains" required="true">  
 				           <f:selectItem itemLabel="Choisir un opérateur" itemValue="" />  
 				           <f:selectItems value="#{clientController.operateurs}" var="operateur" itemLabel="#{operateur.nom}" itemValue="#{operateur}"/>  
 				           <p:column>  
@@ -152,7 +156,9 @@
                                         <h:outputText value="#{numTel.numTel}" />  
                                     </f:facet>  
                                     <f:facet name="input">  
-                                        <p:inputText value="#{numTel.numTel}" maxlength="8" required="true"/>  
+                                        <p:inputMask value="#{numTel.numTel}" maxlength="8" required="true" requiredMessage="Le champ numéro de téléphone est requis" mask="99999999">  
+                                            <f:convertNumber type="number" integerOnly="true" />
+                                        </p:inputMask>
                                     </f:facet>  
                                 </p:cellEditor>  
                             </p:column> 
@@ -162,36 +168,56 @@
                             <f:facet name="footer">
                                 <div align="center">
                                     <p:commandButton value="Ajouter Numéro" icon="iconAdd" action="#{clientController.prepareAddNumTel}"
-                                           update=":addNumTelDialog" oncomplete="PF('addNumTelWidget').show()">
+                                           update=":addNumTelForm" oncomplete="PF('addNumTelWidget').show()">
+                                        <p:resetInput target=":addNumTelForm" />
                                     </p:commandButton>
                                 </div>
                             </f:facet>
                         </p:dataTable>  
             		<f:facet name="footer">
                             <div align="center">
-                                <p:commandButton value="Enregistrer" action="#{clientController.update}" icon="ui-icon-disk" process="@this :editForm:displayEdit" oncomplete="PF('editClientWidget').hide();updateList();"/>
-                                <p:commandButton value="Supprimer" action="#{clientController.delete}" icon="iconDelete" update=":form:clients" process="@this :editForm:displayEdit" oncomplete="PF('editClientWidget').hide();updateList();"/> 
+                                <p:commandButton value="Enregistrer" action="#{clientController.update}" icon="ui-icon-disk" process="@this :editForm:displayEdit" update=":editForm:displayEdit,@(.ui-messages)" oncomplete="handleEditClientRequest(xhr, status, args);"/>
+                                <p:commandButton value="Supprimer" action="#{clientController.delete}" icon="iconDelete" process="@this :editForm:displayEdit" oncomplete="updateList();PF('editClientWidget').hide();" immediate="true"> 
+                                    <p:confirm header="Confirmation" message="Êtes-vous sûr de vouloir supprimer ce client?" icon="ui-icon-alert" />
+                                </p:commandButton>
                             </div>
                         </f:facet>
                     </h:panelGrid>  
+                 <p:confirmDialog global="true" showEffect="fade" hideEffect="explode">
+                    <p:commandButton value="Oui" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" />
+                    <p:commandButton value="Non" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+                 </p:confirmDialog>
+                 <p:remoteCommand name="updateEdit" update="numTels" />
                  </h:form>
                  </p:scrollPanel>
+                 <script type="text/javascript">  
+                    function handleEditClientRequest(xhr, status, args) {  
+                        if(!args.validationFailed) {  
+                            updateList();
+                            PF('editClientWidget').hide();  
+                        }   
+                        else {  
+                            PF('editClientWidget').jq.effect("shake", { times:5 }, 100);  
+                        }  
+                    }  
+               </script>   
             </p:dialog>  
             <p:dialog id="addClientDialog" appendToBody="false" dynamic="true" header="Nouveau client" widgetVar="addClientWidget" resizable="false"  
-               showEffect="clip" hideEffect="fold" width="100%" height="500">  
-               <p:scrollPanel mode="native" style="height">
+                      showEffect="clip" hideEffect="fold" width="100%" height="500">  
+               <p:scrollPanel mode="native">
                <h:form id="addForm">
+                    <p:messages id="addMessages"/>
                     <h:panelGrid id="displayAdd" columns="2" cellpadding="4" width="100%">  
                         <h:outputLabel for="nom" value="#{text['client.nom']}"/>
-                        <p:inputText id="nom" value="#{clientController.newClient.nom}" />                                                    
+                        <p:inputText id="nom" value="#{clientController.newClient.nom}" required="true" requiredMessage="Le champ nom est requis" maxlength="20"/>                                                    
                         <h:outputLabel for="prenom" value="#{text['client.prenom']}"/>
-                        <p:inputText id="prenom" value="#{clientController.newClient.prenom}" /> 
+                        <p:inputText id="prenom" value="#{clientController.newClient.prenom}" required="true" requiredMessage="Le champ prénom est requis" maxlength="20"/> 
                         <h:outputLabel for="adresse" value="#{text['client.adresse']}"/>
-                        <p:inputTextarea id="adresse" value="#{clientController.newClient.address}" cols="80"/>
+                        <p:inputTextarea id="adresse" value="#{clientController.newClient.address}" cols="80" required="true" requiredMessage="Le champ adresse est requis" maxlength="255"/>
                         <h:outputLabel for="ville" value="#{text['client.ville']}"/>
-                        <p:inputText id="ville" value="#{clientController.newClient.ville}" /> 
+                        <p:inputText id="ville" value="#{clientController.newClient.ville}" required="true" requiredMessage="Le champ ville est requis" maxlength="20"/> 
                         <h:outputLabel for="email" value="#{text['client.email']}"/>
-                        <p:inputText id="email" value="#{clientController.newClient.email}" /> 
+                        <p:inputText id="email" value="#{clientController.newClient.email}" required="true" requiredMessage="Le champ email est requis" maxlength="40"/> 
                         <h:outputLabel for="prix" value="#{text['client.prix']}"/>
                         <p:dataGrid var="prixClient" value="#{clientController.prixClients}" columns="3"  
                             rows="15" paginator="true" id="prix"  
@@ -199,12 +225,14 @@
                             <p:panel header="#{prixClient.produit.description}" style="text-align:center">  
                                 <h:panelGrid columns="2" style="width:100%"> 
                                     <h:outputLabel for="prixUnit">Prix Unitaire</h:outputLabel>
-                                    <p:inputText id="prixUnit" value="#{prixClient.prixUnit}" required="true"/>  
+                                    <p:inputText id="prixUnit" value="#{prixClient.prixUnit}" converterMessage="le montant saisi n’a pas pu être interprété en tant que valeur monétaire.">  
+                                        <f:convertNumber currencySymbol="D.T" maxFractionDigits="3" type="currency"/>
+                                    </p:inputText>
                                 </h:panelGrid>  
                             </p:panel> 
                         </p:dataGrid>
                         <h:outputLabel for="numTels" value="#{text['client.numTels']}"/>
-                        <p:dataTable var="numTel" value="#{clientController.numTels}" id="numTels" editable="true">  
+                        <p:dataTable var="numTel" value="#{clientController.numTels}" id="numTels" editable="true" emptyMessage="Aucun numéro">  
                             <p:column headerText="Operateur" style="width:30%">  
                                 <p:cellEditor>  
                                     <f:facet name="output">  
@@ -212,7 +240,7 @@
                                     </f:facet>  
                                     <f:facet name="input">  
                                         <p:selectOneMenu value="#{numTel.operateur}" converter="#{operateurConverter}" panelStyle="width:160px"  
-                                 	effect="fade" var="o" style="width:160px"  filter="true" filterMatchMode="contains">  
+                                 	effect="fade" var="o" style="width:160px"  filter="true" filterMatchMode="contains" required="true" requiredMessage="Le champ opérateur est requis">  
 				           <f:selectItem itemLabel="Choisir un opérateur" itemValue="" />  
 				           <f:selectItems value="#{clientController.operateurs}" var="operateur" itemLabel="#{operateur.nom}" itemValue="#{operateur}"/>  
 				           <p:column>  
@@ -228,7 +256,9 @@
                                         <h:outputText value="#{numTel.numTel}" />  
                                     </f:facet>  
                                     <f:facet name="input">  
-                                        <p:inputText value="#{numTel.numTel}" maxlength="8" required="true"/>  
+                                        <p:inputMask value="#{numTel.numTel}" maxlength="8" required="true" requiredMessage="Le champ numéro de téléphone est requis" mask="99999999">  
+                                            <f:convertNumber type="number" integerOnly="true" />
+                                        </p:inputMask>
                                     </f:facet>  
                                 </p:cellEditor>  
                             </p:column> 
@@ -238,27 +268,41 @@
                             <f:facet name="footer">
                                 <div align="center">
                                     <p:commandButton value="Ajouter Numéro" icon="iconAdd" action="#{clientController.prepareAddNumTel}"
-                                           update=":addNumTelForm:displayAddNumTel" oncomplete="PF('addNumTelWidget').show()">
+                                       update=":addNumTelForm" immediate="true" oncomplete="PF('addNumTelWidget').show()">
+                                        <p:resetInput target=":addNumTelForm" />
                                     </p:commandButton>
                                 </div>
                             </f:facet>
                         </p:dataTable>  
             		<f:facet name="footer">
                             <div align="center">
-                                <p:commandButton value="Enregistrer" action="#{clientController.saveNew}" icon="ui-icon-disk" process="@this :addForm:displayAdd" oncomplete="PF('addClientWidget').hide();updateList();"/>
+                                <p:commandButton value="Enregistrer" action="#{clientController.saveNew}" update=":addForm:displayAdd,@(.ui-messages)" icon="ui-icon-disk" process="@this :addForm:displayAdd" oncomplete="handleAddClientRequest(xhr, status, args);"/>
                             </div>
                         </f:facet>
                     </h:panelGrid>  
+                    <p:remoteCommand name="updateAdd" update="numTels"/>
                </h:form>
                </p:scrollPanel>
+               <script type="text/javascript">  
+                    function handleAddClientRequest(xhr, status, args) {  
+                        if(!args.validationFailed) {  
+                            updateList();
+                            PF('addClientWidget').hide();  
+                        }   
+                        else {  
+                            PF('addClientWidget').jq.effect("shake", { times:5 }, 100);  
+                        }  
+                    }  
+               </script>   
             </p:dialog>  
             <p:dialog id="addNumTelDialog" dynamic="true" appendToBody="false" header="Nouveau Numéro" widgetVar="addNumTelWidget" resizable="false"  
                showEffect="clip" hideEffect="fold">  
                <h:form id="addNumTelForm">
+                    <p:messages id="messages"/>
                     <h:panelGrid id="displayAddNumTel" columns="2" cellpadding="4" width="100%">  
                         <h:outputLabel for="operateur" value="Opérateur"/>
                         <p:selectOneMenu id="operateur" value="#{clientController.newNumTel.operateur}" converter="#{operateurConverter}" panelStyle="width:160px"  
-                               effect="fade" var="o" style="width:160px"  filter="true" filterMatchMode="contains">  
+                                         effect="fade" var="o" style="width:160px"  filter="true" filterMatchMode="contains" required="true" requiredMessage="Le champ opérateur est requis">  
        		           <f:selectItem itemLabel="Choisir un opérateur" itemValue="" />  
 		           <f:selectItems value="#{clientController.operateurs}" var="operateur" itemLabel="#{operateur.nom}" itemValue="#{operateur}"/>  
 		           <p:column>  
@@ -266,14 +310,34 @@
 		           </p:column>  
                         </p:selectOneMenu>  
                         <h:outputLabel for="numTel" value="Numéro de téléphone"/>
-                        <p:inputText id="numTel" value="#{clientController.newNumTel.numTel}"/> 
+                        <p:inputMask id="numTel" value="#{clientController.newNumTel.numTel}" required="true" requiredMessage="Le champ numéro de téléphone est requis" mask="99999999"> 
+                            <f:convertNumber type="number" integerOnly="true" />
+                        </p:inputMask>
         		<f:facet name="footer">
                             <div align="center">
-                                <p:commandButton value="Enregistrer" action="#{clientController.addNumTel}" update=":addForm:displayAdd,:editForm:displayEdit" oncomplete="PF('addNumTelWidget').hide()" icon="ui-icon-disk" process="@this :addNumTelForm:displayAddNumTel"/>
+                                <p:commandButton value="Enregistrer" action="#{clientController.addNumTel}" oncomplete="handleAddNumTelRequest(xhr, status, args);" icon="ui-icon-disk" process="@this :addNumTelForm:displayAddNumTel"/>
                             </div>
                         </f:facet>
                     </h:panelGrid>  
+                    <p:remoteCommand name="updateMessages" update="messages" />
                </h:form>
+               <script type="text/javascript">  
+                    function handleAddNumTelRequest(xhr, status, args) {  
+                        if(!args.validationFailed) { 
+                            if(typeof(updateAdd) == "function"){
+                                updateAdd();
+                            }
+                            else if (typeof(updateEdit) == "function"){
+                                updateEdit();
+                            }
+                            PF('addNumTelWidget').hide();  
+                        }   
+                        else {  
+                            updateMessages();
+                            PF('addNumTelWidget').jq.effect("shake", { times:5 }, 100);  
+                        }  
+                    }  
+               </script>  
             </p:dialog>  
         </ui:define>
 </ui:composition>

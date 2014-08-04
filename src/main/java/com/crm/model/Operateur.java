@@ -40,7 +40,7 @@ public class Operateur extends BaseObject implements Serializable {
         this.id = id;
     }
     
-    @Column(name="nom", nullable=false)
+    @Column(name="nom", nullable=false, length = 20)
     @Field
     public String getNom() {
         return nom;

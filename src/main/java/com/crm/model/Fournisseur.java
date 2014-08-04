@@ -52,7 +52,7 @@ public class Fournisseur extends BaseObject implements Serializable{
         this.id = id;
     }
     
-    @Column(name="nom", nullable=false,length = 10)
+    @Column(name="nom", nullable=false,length = 40)
     @Field
     public String getNom() {
         return nom;
@@ -82,7 +82,7 @@ public class Fournisseur extends BaseObject implements Serializable{
         this.ville = ville;
     }
 
-    @Column(name="adresse", nullable=false,length = 100)
+    @Column(name="adresse", nullable=false,length = 255)
     @Field
     public String getAddress() {
         return address;

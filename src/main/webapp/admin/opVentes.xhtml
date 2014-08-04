@@ -44,7 +44,7 @@
                                         </p:column>
                                     </f:facet>
                                     <h:outputText value="#{opVente.dateVente}">
-                                        <f:convertDateTime pattern="dd-MM-yyyy"/>
+                                        <f:convertDateTime pattern="dd/MM/yyyy HH:mm"/>
                                     </h:outputText> 
                                 </p:column>
                                 <p:column style="text-align:center">
@@ -125,14 +125,24 @@
 			</p:selectOneMenu>  
                         <h:outputLabel for="ventes">Ventes</h:outputLabel>  
                         <p:dataGrid var="vente" value="#{opVenteController.ventes}" columns="3"  
-                            rows="15" paginator="true" id="ventes"  
+                            rows="15" paginator="true" id="ventes" rowIndexVar="index"
                             paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}">  
                             <p:panel header="#{vente.produit.description}" style="text-align:center">  
                                 <h:panelGrid columns="2" style="width:100%">
                                     <h:outputLabel for="quantite">Quantité</h:outputLabel>
-                                    <p:inputText id="quantite" value="#{vente.quantite}" required="true"/>  
+                                    <p:inputText id="quantite" type="number" value="#{vente.quantite}" required="true">  
+                                        <p:ajax listener="#{opVenteController.handleInputChange(index)}" event="keyup" update="montant"/>
+                                        <f:convertNumber type="number" integerOnly="true" />
+                                    </p:inputText>
                                     <h:outputLabel for="prixUnit">Prix Unitaire</h:outputLabel>
-                                    <p:inputText id="prixUnit" value="#{vente.prixUnit}" required="true"/>
+                                    <p:inputText id="prixUnit" type="number" value="#{vente.prixUnit}" required="true">  
+                                        <p:ajax listener="#{opVenteController.handleInputChange(index)}" event="keyup" update="montant"/>
+                                        <f:convertNumber currencySymbol="D.T" maxFractionDigits="3" type="currency" />
+                                    </p:inputText>
+                                    <h:outputLabel for="montant">Montant</h:outputLabel>
+                                    <h:outputText id="montant" value="#{vente.montant}">
+                                        <f:convertNumber currencySymbol="D.T" maxFractionDigits="3" type="currency" />
+                                    </h:outputText>
                                     <h:outputLabel for="disponible">Disponible</h:outputLabel>
                                     <h:outputText id="disponible" value="#{vente.disponible}"/>
                                     <h:outputLabel rendered="#{vente.produit.recharge}" for="numTel">Numéro de téléphone</h:outputLabel>
@@ -184,14 +194,24 @@
 			</p:selectOneMenu>  
                         <h:outputLabel for="ventes">Les ventes</h:outputLabel>  
                         <p:dataGrid var="vente" value="#{opVenteController.ventes}" columns="3"  
-                            rows="15" paginator="true" id="ventes"  
+                            rows="15" paginator="true" id="ventes" rowIndexVar="index"
                             paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}">  
                             <p:panel header="#{vente.produit.description}" style="text-align:center">  
                                 <h:panelGrid columns="2" style="width:100%">  
                                     <h:outputLabel for="quantite">Quantité</h:outputLabel>
-                                    <p:inputText id="quantite" value="#{vente.quantite}" required="true"/>  
+                                    <p:inputText id="quantite" value="#{vente.quantite}" required="true">  
+                                        <p:ajax listener="#{opVenteController.handleInputChange(index)}" event="keyup" update="montant"/>
+                                        <f:convertNumber type="number" integerOnly="true"/>
+                                    </p:inputText>
                                     <h:outputLabel for="prixUnit">Prix Unitaire</h:outputLabel>
-                                    <p:inputText id="prixUnit" value="#{vente.prixUnit}" required="true" />  
+                                    <p:inputText id="prixUnit" value="#{vente.prixUnit}" required="true">  
+                                        <p:ajax listener="#{opVenteController.handleInputChange(index)}" event="keyup" update="montant"/>
+                                        <f:convertNumber currencySymbol="D.T" maxFractionDigits="3" type="currency" />
+                                    </p:inputText>
+                                    <h:outputLabel for="montant">Montant</h:outputLabel>
+                                    <h:outputText id="montant" value="#{vente.montant}">
+                                        <f:convertNumber currencySymbol="D.T" maxFractionDigits="3" type="currency" />
+                                    </h:outputText>
                                     <h:outputLabel for="disponible">Disponible</h:outputLabel>
                                     <h:outputText id="disponible" value="#{vente.disponible}"/>  
                                     <h:outputLabel rendered="#{vente.produit.recharge}" for="numTel">Numéro de téléphone</h:outputLabel>

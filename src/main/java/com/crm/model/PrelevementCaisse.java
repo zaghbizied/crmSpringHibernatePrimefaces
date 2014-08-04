@@ -63,7 +63,7 @@ public class PrelevementCaisse extends BaseObject implements Serializable{
         this.montant = montant;
     }
 
-    @Column(name="motif", nullable=true)
+    @Column(name="motif", nullable=true,length = 255)
     @Field
     public String getMotif() {
         return motif;

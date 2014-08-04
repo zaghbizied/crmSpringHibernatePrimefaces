@@ -14,6 +14,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.xml.bind.annotation.XmlRootElement;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
@@ -31,14 +32,24 @@ import org.hibernate.search.annotations.Indexed;
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Achat extends BaseObject implements Serializable{
     private static final long serialVersionUID = 3934526162173229871L;
+    @Id
+    @GeneratedValue(strategy=IDENTITY)
     private Long id;
+    @Column(name="quantite", nullable=false)
     private int quantite;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="produit")
     private Produit produit;
+    @Column(name="prixUnit", nullable=false)
     private float prixUnit;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="opAchat")
     private OpAchat opAchat;    
+    @Column(name="vendu", nullable=false)
     private int vendu;
+    @Transient
+    private float montant;
 
-    @Id @GeneratedValue(strategy=IDENTITY) @DocumentId    
     public Long getId() {
         return id;
     }
@@ -47,7 +58,6 @@ public class Achat extends BaseObject implements Serializable{
         this.id = id;
     }
 
-    @Column(name="quantite", nullable=false)
     @Field
     public int getQuantite() {
         return quantite;
@@ -57,7 +67,6 @@ public class Achat extends BaseObject implements Serializable{
         this.quantite = quantite;
     }
 
-    @Column(name="vendu", nullable=false)
     @Field
     public int getVendu() {
         return vendu;
@@ -67,7 +76,6 @@ public class Achat extends BaseObject implements Serializable{
         this.vendu = vendu;
     }
 
-    @Column(name="prixUnit", nullable=false)
     @Field
     public float getPrixUnit() {
         return prixUnit;
@@ -77,8 +85,6 @@ public class Achat extends BaseObject implements Serializable{
         this.prixUnit = prixUnit;
     }
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="produit")
     public Produit getProduit() {
         return produit;
     }
@@ -87,8 +93,6 @@ public class Achat extends BaseObject implements Serializable{
         this.produit = produit;
     }
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="opAchat")
     @JsonIgnore
     public OpAchat getOpAchat() {
         return opAchat;
@@ -96,6 +100,14 @@ public class Achat extends BaseObject implements Serializable{
 
     public void setOpAchat(OpAchat opAchat) {
         this.opAchat = opAchat;
+    }
+
+    public float getMontant() {
+        return montant;
+    }
+
+    public void setMontant(float montant) {
+        this.montant = montant;
     }
     
     @Override

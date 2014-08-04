@@ -52,7 +52,7 @@
                                 </p:column>
                             </f:facet>
                             <h:outputText value="#{paiement.datePaiement}">
-                                <f:convertDateTime pattern="dd/MM/yyyy" timeZone="ECT"/>
+                                <f:convertDateTime pattern="dd/MM/yyyy HH:mm"/>
                             </h:outputText>
                         </p:column>
                         <p:column style="text-align:center">
@@ -67,6 +67,7 @@
                             <div align="left">
                                <p:commandButton value="Nouveau" icon="iconAdd" action="#{paiementClientController.prepareAdd}" process="@this :form:paiements"
                                   update=":addForm" oncomplete="PF('addPaiementWidget').show()">
+                                   <p:resetInput target=":addForm" />
                                </p:commandButton>
                             </div>
                         </f:facet>
@@ -84,11 +85,12 @@
     <ui:define name="dialogs">
             <p:dialog id="addPaiementDialog" dynamic="true" appendToBody="false" header="Nouveau Paiement" widgetVar="addPaiementWidget" resizable="false" showEffect="clip" hideEffect="fold">
                 <h:form id="addForm">
+                    <p:messages id="messages"/>
                     <h:panelGrid columns="2">
                         <h:panelGrid id="displayAdd" columns="2" cellpadding="10">
                             <h:outputLabel for="client" value="Client"/>
                             <p:selectOneMenu id="client" value="#{paiementClientController.newPaiementClient.client}" converter="#{clientConverter}" panelStyle="width:160px"  
-                                effect="fade" var="c" style="width:160px" filter="true" filterMatchMode="contains">  
+                                             effect="fade" var="c" style="width:160px" filter="true" filterMatchMode="contains" required="true" requiredMessage="le champ client est requis">  
                                    <p:ajax event="valueChange" update=":addForm" listener="#{paiementClientController.onClientSelect}"/>
                                    <f:selectItem itemLabel="Choisir un client" itemValue="" />  
                                    <f:selectItems value="#{invoiceController.clients}" var="client" itemLabel="#{client.fullName}" itemValue="#{client}"/>  
@@ -97,11 +99,12 @@
                                    </p:column>  
                             </p:selectOneMenu> 
                             <h:outputLabel for="montant" value="#{text['paiement.montant']}"/>
-                            <p:inputText id="montant" value="#{paiementClientController.newPaiementClient.montant}" required="true">
+                            <p:inputText id="montant" value="#{paiementClientController.newPaiementClient.montant}" required="true" requiredMessage="le champ montant est requis" converterMessage="le montant saisi n’a pas pu être interprété en tant que valeur monétaire.">
+                                <f:convertNumber currencySymbol="D.T" maxFractionDigits="3" type="currency" />
                             </p:inputText>
                             <f:facet name="footer">
                                 <div align="center">
-                                    <p:commandButton icon="ui-icon-disk" value="Enregister" update=":growl" action="#{paiementClientController.saveNew}" oncomplete="handleSubmitRequest(xhr, status, args, 'addPaiementDialog');updateList();" />
+                                    <p:commandButton icon="ui-icon-disk" value="Enregister" update="@(.ui-messages)" action="#{paiementClientController.saveNew}" oncomplete="handleSubmitRequest(xhr, status, args, 'addPaiementDialog');" />
                                 </div>
                             </f:facet>
                         </h:panelGrid>
@@ -125,6 +128,7 @@
                     if(args.validationFailed) {  
                         dialog.effect("shake", { times:3 }, 100);  
                     } else {
+                        updateList();
                         PF('addPaiementWidget').hide(); 
                     }  
                 }

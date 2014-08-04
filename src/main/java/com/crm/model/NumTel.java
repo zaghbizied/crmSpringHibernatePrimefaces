@@ -56,7 +56,7 @@ public class NumTel extends BaseObject implements Serializable {
         this.numTel = numTel;
     }
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name="operateur")
     public Operateur getOperateur() {
         return operateur;

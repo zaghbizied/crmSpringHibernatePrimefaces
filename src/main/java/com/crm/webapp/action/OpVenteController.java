@@ -358,6 +358,7 @@ public class OpVenteController extends BasePage implements Serializable{
                     dispo=dispo+a.getQuantite()-a.getVendu();
                 }
                 v.setDisponible(dispo);
+                v.setMontant(v.getQuantite()*v.getPrixUnit());
                 if(dispo>0)v.setDisable(false);
                 else v.setDisable(true);
             }
@@ -388,6 +389,7 @@ public class OpVenteController extends BasePage implements Serializable{
                     v.setDisable(true);
                     v.setDisponible(0);
             }
+            v.setMontant(v.getQuantite()*v.getPrixUnit());
         }
         for(Produit p:produits){
             if(!existInArray(p,ventes)){
@@ -432,6 +434,7 @@ public class OpVenteController extends BasePage implements Serializable{
             tmp.setProduit(p);
             tmp.setQuantite(0);
             tmp.setPrixUnit(0);
+            tmp.setMontant(0);
             int dispo=0;
             List<Achat> achats=achatManager.getNotSelled(p);
             if(achats!=null){
@@ -640,5 +643,9 @@ public class OpVenteController extends BasePage implements Serializable{
         
     }
     
-    
+    public void handleInputChange(int index) {
+        Vente tmp=ventes.get(index);
+        tmp.setMontant(tmp.getQuantite()*tmp.getPrixUnit());
+        ventes.set(index,tmp);
+    }
 }

@@ -141,6 +141,7 @@ public class ClientController extends BasePage implements Serializable{
     }
     
     public void prepareAddNumTel(){
+        System.out.println("preparing add numtel");
         newNumTel=new NumTel();
     }
     
@@ -161,7 +162,12 @@ public class ClientController extends BasePage implements Serializable{
     }
     
     public void delete() {
+        System.out.println("removing client "+selectedClient.getId());
+        List<PrixClient> lst=prixClientManager.getByClient(selectedClient);
+        for(PrixClient pc:lst)
+            prixClientManager.remove(pc);
         clientManager.remove(selectedClient.getId());
+        
     }    
 
     public void saveNew() {

@@ -117,17 +117,18 @@ public class PaiementClientController extends BasePage implements Serializable{
     
     @PostConstruct
     public void init(){
+        searchObject=new PaiementClient();
+        searchObject.setDatePaiement(new Date(System.currentTimeMillis()));
         this.paiementsClient = new LazyDataModel<PaiementClient>(){
                 private static final long    serialVersionUID    = 1L;
                 @Override
                 public List<PaiementClient> load(int first, int pageSize, String sortField, SortOrder sortOrder, Map<String, String> filters) {
-                    List<PaiementClient> result = paiementClientManager.getLazyByDate(new Date(System.currentTimeMillis()),first, pageSize, sortField, sortOrder, filters);
+                    List<PaiementClient> result = paiementClientManager.getLazyByDate(searchObject.getDatePaiement(),first, pageSize, sortField, sortOrder, filters);
                     return result;
                 }
         };
-        paiementsClient.setRowCount(paiementClientManager.countByDate(new Date(System.currentTimeMillis())));
+        paiementsClient.setRowCount(paiementClientManager.countByDate(searchObject.getDatePaiement()));
         clients=clientManager.getAll();
-        searchObject=new PaiementClient();
     }
     
     public void saveNew(){

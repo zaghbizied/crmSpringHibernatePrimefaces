@@ -79,13 +79,15 @@
                                                 </p:column>
                                             </f:facet>
                                             <p:commandButton icon="iconEdit" action="#{opAchatController.prepareUpdate(opAchat)}"
-                                                  update=":editForm:displayEdit" oncomplete="PF('editOpAchatWidget').show()">
+                                                  update=":editForm" oncomplete="PF('editOpAchatWidget').show()">
+                                                <p:resetInput target=":editForm" />
                                             </p:commandButton>
                                         </p:column>
                                         <f:facet name="header">
                                                 <div align="left">
                                                         <p:commandButton value="Nouveau" icon="iconAdd" action="#{opAchatController.prepareAdd}"
-                                                                    update=":addForm:displayAdd" oncomplete="PF('addOpAchatWidget').show()">
+                                                                    update=":addForm" oncomplete="PF('addOpAchatWidget').show()">
+                                                            <p:resetInput target=":addForm" />
                                                         </p:commandButton>
                                                 </div>
                                         </f:facet>
@@ -101,59 +103,79 @@
     </ui:define>
     <ui:define name="dialogs">
            <p:dialog id="editOpAchatDialog" dynamic="true" appendToBody="false" header="Les détails concernant l'opération d'achat" widgetVar="editOpAchatWidget" resizable="false"  
-               showEffect="clip" hideEffect="fold">  
+               showEffect="clip" hideEffect="fold" width="100%" height="500">  
+               <p:scrollPanel mode="native">
                <h:form id="editForm">
-                    <p:growl id="messages" showDetail="true"/>  
+                    <p:messages id="editMessages"/>  
                     <h:panelGrid id="displayEdit" columns="2" cellpadding="4" width="100%">  
-                        <h:outputLabel for="fournisseur">Fournisseur</h:outputLabel>  
+                        <h:outputLabel for="fournisseur_e">Fournisseur</h:outputLabel>  
                         <p:selectOneMenu id="fournisseur" value="#{opAchatController.selectedOpAchat.fournisseur}" converter="#{fournisseurConverter}" panelStyle="width:160px"  
-                        effect="fade" var="c" style="width:160px"  filter="true" filterMatchMode="contains">  
+                                         effect="fade" var="c" style="width:160px"  filter="true" filterMatchMode="contains" required="true" requiredMessage="le champ fournisseur est requis">  
                            <f:selectItem itemLabel="Choisir un fournisseur" itemValue="" />  
                            <f:selectItems value="#{opAchatController.fournisseurs}" var="fournisseur" itemLabel="#{fournisseur.nom}" itemValue="#{fournisseur}"/>  
                            <p:column>  
                                #{c.nom}
                            </p:column>  
                         </p:selectOneMenu>  
-			<h:outputLabel for="achats">Les achats</h:outputLabel>  
+			<h:outputLabel for="achats_e">Les achats</h:outputLabel>  
                         <p:dataGrid var="achat" value="#{opAchatController.achats}" columns="3"  
-                            rows="15" paginator="true" id="achats"  
+                            rows="15" paginator="true" rowIndexVar="index" id="achats_e"
                             paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}">  
                             <p:panel header="#{achat.produit.description}" style="text-align:center">  
                                 <h:panelGrid columns="2" style="width:100%">  
                                     <h:outputLabel for="quantite">Quantité</h:outputLabel>
-                                    <p:inputText id="quantite" value="#{achat.quantite}" required="true"/>  
+                                    <p:inputText id="quantite" value="#{achat.quantite}" converterMessage="la quantité saisie n’a pas pu être interprétée en tant que valeur entière.">  
+                                        <p:ajax listener="#{opAchatController.handleInputChange(index)}" event="keyup" update="montant"/>
+                                        <f:convertNumber type="number" integerOnly="true"/>
+                                    </p:inputText>
                                     <h:outputLabel for="prixUnit">Prix Unitaire</h:outputLabel>
-                                    <p:inputText id="prixUnit" value="#{achat.prixUnit}" required="true"/>  
+                                    <p:inputText id="prixUnit" value="#{achat.prixUnit}" converterMessage="le prix saisi n’a pas pu être interprété en tant que valeur monétaire.">  
+                                        <p:ajax listener="#{opAchatController.handleInputChange(index)}" event="keyup" update="montant"/>
+                                        <f:convertNumber currencySymbol="D.T" maxFractionDigits="3" type="currency" />
+                                    </p:inputText>
+                                    <h:outputLabel for="montant">Montant</h:outputLabel>
+                                    <h:outputText id="montant" value="#{achat.montant}">
+                                        <f:convertNumber currencySymbol="D.T" maxFractionDigits="3" type="currency" />
+                                    </h:outputText>
                                 </h:panelGrid>  
                             </p:panel> 
                         </p:dataGrid>
             		<f:facet name="footer">
                             <div align="center">
-                                <p:commandButton value="Enregistrer" action="#{opAchatController.update}" icon="ui-icon-disk" process="@this :editForm:displayEdit" update="@(.ui-messages),:form:opAchats" oncomplete="handleEditOpAchatRequest(xhr, status, args);"/>
-                                <p:commandButton value="Supprimer" action="#{opAchatController.delete}" icon="iconDelete" process="@this :editForm:displayEdit" update="@(.ui-messages),:form:opAchats" oncomplete="handleEditOpAchatRequest(xhr, status, args);"/> 
+                                <p:commandButton value="Enregistrer" action="#{opAchatController.update}" icon="ui-icon-disk" process="@this :editForm:displayEdit" update="@(.ui-messages)" oncomplete="handleEditOpAchatRequest(xhr, status, args);"/>
+                                <p:commandButton value="Supprimer" action="#{opAchatController.delete}" icon="iconDelete" process="@this :editForm:displayEdit" oncomplete="updateList();PF('editOpAchatWidget').hide();" immediate="true"> 
+                                    <p:confirm header="Confirmation" message="Êtes-vous sûr de vouloir supprimer cette opération d'achat?" icon="ui-icon-alert" />
+                                </p:commandButton>
                             </div>
                         </f:facet>
                     </h:panelGrid>  
+                    <p:confirmDialog global="true" showEffect="fade" hideEffect="explode">
+                        <p:commandButton value="Oui" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" />
+                        <p:commandButton value="Non" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+                    </p:confirmDialog>
                  </h:form>
+                 </p:scrollPanel>
                  <script type="text/javascript">  
                     function handleEditOpAchatRequest(xhr, status, args) {  
-                        if(args.validationFailed || !args.fail) {  
-                            PF('editOpAchatWidget').hide();  
+                        if(!args.validationFailed) {  
                             updateList();
+                            PF('editOpAchatWidget').hide();  
                         }   
                         else {  
-                            PF('editOpAchatWidget').jq.effect("editOpAchatWidget", { times:5 }, 100);  
+                            PF('editOpAchatWidget').jq.effect("shake", { times:5 }, 100);  
                         }  
                     }  
                   </script>
-            </p:dialog>  
+           </p:dialog>  
            <p:dialog id="addOpAchatDialog" appendToBody="false" dynamic="true" header="Nouvelle opération achat" widgetVar="addOpAchatWidget" resizable="false"  
-               showEffect="clip" hideEffect="fold">  
+               showEffect="clip" hideEffect="fold" width="100%" height="500">  
+               <p:scrollPanel mode="native">
                <h:form id="addForm">
+                    <p:messages id="addMessages"/>  
                     <h:panelGrid id="displayAdd" columns="2" cellpadding="4" width="100%">  
                         <h:outputLabel for="fournisseur">Fournisseur</h:outputLabel>  
                         <p:selectOneMenu id="fournisseur" value="#{opAchatController.newOpAchat.fournisseur}" converter="#{fournisseurConverter}" panelStyle="width:160px"  
-                        effect="fade" var="c" style="width:160px"  filter="true" filterMatchMode="contains">  
+                        effect="fade" var="c" style="width:160px"  filter="true" filterMatchMode="contains" required="true" requiredMessage="le champ fournisseur est requis">  
                            <p:ajax event="valueChange" update="achats" listener="#{opAchatController.onFournisseurSelect}"/>
                            <f:selectItem itemLabel="Choisir un fournisseur" itemValue="" />  
                            <f:selectItems value="#{opAchatController.fournisseurs}" var="fournisseur" itemLabel="#{fournisseur.nom}" itemValue="#{fournisseur}"/>  
@@ -163,24 +185,46 @@
                         </p:selectOneMenu>  
                         <h:outputLabel for="achats">Les achats</h:outputLabel>  
                         <p:dataGrid var="achat" value="#{opAchatController.achats}" columns="3"  
-                            rows="15" paginator="true" id="achats"  
+                            rows="15" paginator="true" id="achats" rowIndexVar="index"
                             paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}">  
                             <p:panel header="#{achat.produit.description}" style="text-align:center">  
                                 <h:panelGrid columns="2" style="width:100%">  
                                     <h:outputLabel for="quantite">Quantité</h:outputLabel>
-                                    <p:inputText id="quantite" value="#{achat.quantite}" required="true"/>  
+                                    <p:inputText id="quantite" value="#{achat.quantite}" converterMessage="la quantité saisie n’a pas pu être interprétée en tant que valeur entière.">  
+                                        <p:ajax listener="#{opAchatController.handleInputChange(index)}" event="keyup" update="montant"/>
+                                        <f:convertNumber type="number" integerOnly="true"/>
+                                    </p:inputText>
                                     <h:outputLabel for="prixUnit">Prix Unitaire</h:outputLabel>
-                                    <p:inputText id="prixUnit" value="#{achat.prixUnit}" required="true"/>  
+                                    <p:inputText id="prixUnit" value="#{achat.prixUnit}" converterMessage="le prix saisi n’a pas pu être interprété en tant que valeur monétaire.">  
+                                        <p:ajax listener="#{opAchatController.handleInputChange(index)}" event="keyup" update="montant"/>
+                                        <f:convertNumber currencySymbol="D.T" maxFractionDigits="3" type="currency" />
+                                    </p:inputText>
+                                    <h:outputLabel for="montant">Montant</h:outputLabel>
+                                    <h:outputText id="montant" value="#{achat.montant}">
+                                        <f:convertNumber currencySymbol="D.T" maxFractionDigits="3" type="currency" />
+                                    </h:outputText>
                                 </h:panelGrid>  
                             </p:panel> 
                         </p:dataGrid> 
             		<f:facet name="footer">
                             <div align="center">
-                                <p:commandButton value="Enregistrer" action="#{opAchatController.saveNew}" icon="ui-icon-disk" process="@this :addForm:displayAdd" oncomplete="PF('addOpAchatWidget').hide();updateList();"/>
+                                <p:commandButton value="Enregistrer" action="#{opAchatController.saveNew}" update="@(.ui-messages)" icon="ui-icon-disk" process="@this :addForm:displayAdd" oncomplete="handleAddOpAchatRequest(xhr, status, args);"/>
                             </div>
                         </f:facet>
                     </h:panelGrid>  
                </h:form>
+               </p:scrollPanel>
+               <script type="text/javascript">  
+                    function handleAddOpAchatRequest(xhr, status, args) {  
+                        if(!args.validationFailed) {  
+                            PF('addOpAchatWidget').hide();  
+                            updateList();
+                        }   
+                        else {  
+                            PF('addOpAchatWidget').jq.effect("shake", { times:5 }, 100);  
+                        }  
+                    }  
+                  </script>
             </p:dialog>  
             
         </ui:define>

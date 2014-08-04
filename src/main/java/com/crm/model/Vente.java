@@ -4,7 +4,6 @@
  */
 package com.crm.model;
 
-import java.beans.Transient;
 import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -15,9 +14,10 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.xml.bind.annotation.XmlRootElement;
-import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.hibernate.search.annotations.DocumentId;
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Indexed;
@@ -32,18 +32,33 @@ import org.hibernate.search.annotations.Indexed;
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Vente extends BaseObject implements Serializable{
     private static final long serialVersionUID = 3934526162173359871L;
+    @Id
+    @GeneratedValue(strategy=IDENTITY)
     private Long id;
+    @Column(name="quantite", nullable=false)
     private int quantite;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="produit")
     private Produit produit;
+    @Column(name="prixUnit", nullable=false)
     private float prixUnit;
+    @Column(name="prixAchat", nullable=false)
     private float prixAchat;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="opVente")
     private OpVente opVente;
+    @Transient
     private int disponible;
+    @Transient
     private boolean disable;
+    @Column(name="validated", nullable=false)
     private boolean validated;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name="numTel")
     private NumTel numTel;
+    @Transient
+    private float montant;
 
-    @Id @GeneratedValue(strategy=IDENTITY) @DocumentId    
     public Long getId() {
         return id;
     }
@@ -52,7 +67,6 @@ public class Vente extends BaseObject implements Serializable{
         this.id = id;
     }
 
-    @Column(name="quantite", nullable=false)
     @Field
     public int getQuantite() {
         return quantite;
@@ -62,7 +76,6 @@ public class Vente extends BaseObject implements Serializable{
         this.quantite = quantite;
     }
     
-    @Column(name="prixUnit", nullable=false)
     @Field
     public float getPrixUnit() {
         return prixUnit;
@@ -72,7 +85,6 @@ public class Vente extends BaseObject implements Serializable{
         this.prixUnit = prixUnit;
     }
     
-    @Column(name="prixAchat", nullable=false)
     @Field
     public float getPrixAchat() {
         return prixAchat;
@@ -82,8 +94,6 @@ public class Vente extends BaseObject implements Serializable{
         this.prixAchat = prixAchat;
     }
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="produit")
     public Produit getProduit() {
         return produit;
     }
@@ -92,8 +102,6 @@ public class Vente extends BaseObject implements Serializable{
         this.produit = produit;
     }
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="opVente")
     @JsonIgnore
     public OpVente getOpVente() {
         return opVente;
@@ -103,7 +111,6 @@ public class Vente extends BaseObject implements Serializable{
         this.opVente = opVente;
     }
 
-    @Transient
     public int getDisponible() {
         return disponible;
     }
@@ -112,7 +119,6 @@ public class Vente extends BaseObject implements Serializable{
         this.disponible = disponible;
     }
 
-    @Column(name="validated", nullable=false)
     @Field
     public boolean isValidated() {
         return validated;
@@ -122,8 +128,6 @@ public class Vente extends BaseObject implements Serializable{
         this.validated = validated;
     }
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name="numTel")
     public NumTel getNumTel() {
         return numTel;
     }
@@ -132,13 +136,20 @@ public class Vente extends BaseObject implements Serializable{
         this.numTel = numTel;
     }
 
-    @Transient
     public boolean isDisable() {
         return disable;
     }
 
     public void setDisable(boolean disable) {
         this.disable = disable;
+    }
+    
+    public float getMontant() {
+        return montant;
+    }
+
+    public void setMontant(float montant) {
+        this.montant = montant;
     }
     
     @Override

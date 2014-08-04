@@ -119,11 +119,12 @@ public class PaiementFournisseurController extends BasePage implements Serializa
     public void init(){
         fournisseurs=fournisseurManager.getAll();
         searchObject=new PaiementFournisseur();
+        searchObject.setDatePaiement(new Date(System.currentTimeMillis()));
         this.paiementFournisseurs = new LazyDataModel<PaiementFournisseur>(){
                 private static final long    serialVersionUID    = 1L;
                 @Override
                 public List<PaiementFournisseur> load(int first, int pageSize, String sortField, SortOrder sortOrder, Map<String, String> filters) {
-                    List<PaiementFournisseur> result = paiementFournisseurManager.getLazyByDate(new Date(System.currentTimeMillis()),first, pageSize, sortField, sortOrder, filters);
+                    List<PaiementFournisseur> result = paiementFournisseurManager.getLazyByDate(searchObject.getDatePaiement(),first, pageSize, sortField, sortOrder, filters);
                     return result;
                 }
         };

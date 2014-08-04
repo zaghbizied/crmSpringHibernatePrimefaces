@@ -142,6 +142,7 @@ public class OpAchatController extends BasePage implements Serializable{
     @PostConstruct
     public void init(){
         searchObject=new OpAchat();
+        searchObject.setDateAchat(new Date(System.currentTimeMillis()));
         produits=produitManager.getAll();
         fournisseurs=fournisseurManager.getAll();
         this.opAchats = new LazyDataModel<OpAchat>(){
@@ -212,12 +213,12 @@ public class OpAchatController extends BasePage implements Serializable{
         FacesContext facescontext = FacesContext.getCurrentInstance();
         for(Achat a:achats){
             if(a.getVendu()>0){
-               facescontext.addMessage("messages", new FacesMessage(FacesMessage.SEVERITY_ERROR,"Impossible de supprimer cette opération !!","Impossible de supprimer cette opération !!"));
+               facescontext.addMessage("editMessages", new FacesMessage(FacesMessage.SEVERITY_ERROR,"Impossible de supprimer cette opération !!","Impossible de supprimer cette opération !!"));
                return;
             }
         }
         if(selectedOpAchat.getMontantPaye()>0){
-            facescontext.addMessage("messages", new FacesMessage(FacesMessage.SEVERITY_ERROR,"Impossible de supprimer cette opération !!","Impossible de supprimer cette opération !!"));
+            facescontext.addMessage("editMessages", new FacesMessage(FacesMessage.SEVERITY_ERROR,"Impossible de supprimer cette opération !!","Impossible de supprimer cette opération !!"));
             return;
         }
         opAchatManager.remove(selectedOpAchat.getId());
@@ -250,7 +251,9 @@ public class OpAchatController extends BasePage implements Serializable{
                         break;
                     }
                 }
+                a.setMontant(a.getPrixUnit()*a.getQuantite());
                 tmp.add(a);
+                
             }
             achats=tmp;
         }
@@ -265,9 +268,12 @@ public class OpAchatController extends BasePage implements Serializable{
                 tmp.setProduit(p);
                 tmp.setQuantite(0);
                 tmp.setPrixUnit(0);
+                tmp.setMontant(0);
                 achats.add(tmp);
             }
         }
+        for(Achat a:achats)
+            a.setMontant(a.getPrixUnit()*a.getQuantite());
     }
     
     public boolean existInArray(Produit p,List<Achat> achs){
@@ -284,6 +290,7 @@ public class OpAchatController extends BasePage implements Serializable{
             tmp.setProduit(p);
             tmp.setQuantite(0);
             tmp.setPrixUnit(0);
+            tmp.setMontant(0);
             achats.add(tmp);
         }
         newOpAchat=new OpAchat();
@@ -292,19 +299,20 @@ public class OpAchatController extends BasePage implements Serializable{
     public void update(){
         FacesContext facescontext = FacesContext.getCurrentInstance();
         float montant=0;
-        
         for(Achat a:achats){
-            Achat tmp=achatManager.get(a.getId());
-            if(tmp.getQuantite()>a.getQuantite()){ //Diminution de quantité
-                if(tmp.getVendu()>a.getQuantite()){
-                    facescontext.addMessage("messages", new FacesMessage(FacesMessage.SEVERITY_ERROR,"Impossible de modifier la quantité !! Déjà vendu !!","Impossible de modifier la quantité !! Déjà vendu !!"));
-                    return;
+            if(a.getId()!=null){
+                Achat tmp=achatManager.get(a.getId());
+                if(tmp.getQuantite()>a.getQuantite()){ //Diminution de quantité
+                    if(tmp.getVendu()>a.getQuantite()){
+                        facescontext.addMessage("editMessages", new FacesMessage(FacesMessage.SEVERITY_ERROR,"Impossible de modifier la quantité !! Déjà vendu !!","Impossible de modifier la quantité !! Déjà vendu !!"));
+                        return;
+                    }
                 }
             }
             montant=montant+a.getQuantite()*a.getPrixUnit();
         }
         if(selectedOpAchat.getMontantPaye()>montant){
-            facescontext.addMessage("messages", new FacesMessage(FacesMessage.SEVERITY_ERROR,"Impossible de modifier la quantité !! Paiement déjà effectué !!","Impossible de modifier la quantité !! Paiement déjà effectué !!"));
+            facescontext.addMessage("editMessages", new FacesMessage(FacesMessage.SEVERITY_ERROR,"Impossible de modifier la quantité !! Paiement déjà effectué !!","Impossible de modifier la quantité !! Paiement déjà effectué !!"));
             return;
         }
         selectedOpAchat.setMontant(montant);
@@ -315,5 +323,11 @@ public class OpAchatController extends BasePage implements Serializable{
                 achatManager.save(a);
             }
         }
+    }
+    
+    public void handleInputChange(int index) {
+        Achat tmp=achats.get(index);
+        tmp.setMontant(tmp.getQuantite()*tmp.getPrixUnit());
+        achats.set(index,tmp);
     }
 }
