@@ -18,7 +18,6 @@ import javax.persistence.Transient;
 import javax.xml.bind.annotation.XmlRootElement;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
-import org.hibernate.search.annotations.DocumentId;
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Indexed;
 /**
@@ -47,17 +46,13 @@ public class Vente extends BaseObject implements Serializable{
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="opVente")
     private OpVente opVente;
-    @Transient
-    private int disponible;
-    @Transient
-    private boolean disable;
+    private @Transient int disponible;
     @Column(name="validated", nullable=false)
     private boolean validated;
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name="numTel")
     private NumTel numTel;
-    @Transient
-    private float montant;
+    private @Transient float montant;
 
     public Long getId() {
         return id;
@@ -134,14 +129,6 @@ public class Vente extends BaseObject implements Serializable{
 
     public void setNumTel(NumTel numTel) {
         this.numTel = numTel;
-    }
-
-    public boolean isDisable() {
-        return disable;
-    }
-
-    public void setDisable(boolean disable) {
-        this.disable = disable;
     }
     
     public float getMontant() {

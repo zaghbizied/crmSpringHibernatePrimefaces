@@ -7,6 +7,7 @@ package com.crm.dao.hibernate;
 import com.crm.dao.PaiementClientDao;
 import com.crm.model.Client;
 import com.crm.model.PaiementClient;
+import com.crm.model.TypePaiement;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -166,5 +167,16 @@ public class PaiementClientDaoHibernate extends GenericDaoHibernate<PaiementClie
     @Override
     public List<PaiementClient> getAfterDate(Date date) {
         return  getSession().createCriteria(PaiementClient.class).add(Restrictions.between("datePaiement", date, new Date(System.currentTimeMillis()))).list();
+    }
+
+    @Override
+    public List<PaiementClient> getByType(TypePaiement type) {
+        List<PaiementClient> paiements =  getSession().createCriteria(PaiementClient.class).add(Restrictions.eq("typePaiement", type)).list();
+        return paiements;
+    }
+
+    @Override
+    public List<PaiementClient> getAfterDateByType(Date date, TypePaiement type) {
+        return  getSession().createCriteria(PaiementClient.class).add(Restrictions.eq("typePaiement", type)).add(Restrictions.between("datePaiement", date, new Date(System.currentTimeMillis()))).list();
     }
 }

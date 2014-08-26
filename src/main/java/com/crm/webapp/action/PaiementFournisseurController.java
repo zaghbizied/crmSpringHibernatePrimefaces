@@ -7,9 +7,11 @@ package com.crm.webapp.action;
 import com.crm.model.Fournisseur;
 import com.crm.model.OpAchat;
 import com.crm.model.PaiementFournisseur;
+import com.crm.model.TypePaiement;
 import com.crm.service.FournisseurManager;
 import com.crm.service.OpAchatManager;
 import com.crm.service.PaiementFournisseurManager;
+import com.crm.service.TypePaiementManager;
 import java.io.Serializable;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -38,9 +40,11 @@ public class PaiementFournisseurController extends BasePage implements Serializa
     private PaiementFournisseurManager paiementFournisseurManager;
     private FournisseurManager fournisseurManager;
     private OpAchatManager opAchatManager;
+    private TypePaiementManager typePaiementManager;
     private PaiementFournisseur searchObject;
     private Fournisseur selectedFournisseur;
     private List<Fournisseur> fournisseurs=new ArrayList<>();
+    private List<TypePaiement> typesPaiement=new ArrayList<>();
     private float total=0;
     private boolean displayFiche;
     private float impaye;
@@ -60,6 +64,11 @@ public class PaiementFournisseurController extends BasePage implements Serializa
     @Autowired
     public void setOpAchatManager(@Qualifier("opAchatManager")OpAchatManager opAchatManager) {
         this.opAchatManager = opAchatManager;
+    }
+    
+    @Autowired
+    public void setTypePaiementManager(@Qualifier("typePaiementManager")TypePaiementManager typePaiementManager) {
+        this.typePaiementManager = typePaiementManager;
     }
     
     public void search() throws ParseException{
@@ -129,6 +138,7 @@ public class PaiementFournisseurController extends BasePage implements Serializa
                 }
         };
         paiementFournisseurs.setRowCount(paiementFournisseurManager.countByDate(new Date(System.currentTimeMillis())));
+        typesPaiement=typePaiementManager.getAll();
     }
     
     public void saveNew(){
@@ -269,5 +279,13 @@ public class PaiementFournisseurController extends BasePage implements Serializa
 
     public void setMontantSugg(float montantSugg) {
         this.montantSugg = montantSugg;
+    }
+
+    public List<TypePaiement> getTypesPaiement() {
+        return typesPaiement;
+    }
+
+    public void setTypesPaiement(List<TypePaiement> typesPaiement) {
+        this.typesPaiement = typesPaiement;
     }
 }

@@ -110,7 +110,8 @@
     </ui:define>
     <ui:define name="dialogs">
            <p:dialog id="editOpVenteDialog" dynamic="true" appendToBody="false" header="Les détails concernant l'opération de vente" widgetVar="editOpVenteWidget" resizable="false"  
-               showEffect="clip" hideEffect="fold">  
+               showEffect="clip" hideEffect="fold" width="100%" height="500">  
+               <p:scrollPanel mode="native">
                <h:form id="editForm">
                     <p:messages id="messages"/>
                     <h:panelGrid id="displayEdit" columns="2" cellpadding="4" width="100%">  
@@ -165,6 +166,7 @@
                         </f:facet>
                     </h:panelGrid>  
                  </h:form>
+               </p:scrollPanel>
                  <script type="text/javascript">  
                     function handleEditOpVenteRequest(xhr, status, args) {  
                         if(args.validationFailed || !args.fail) {  
@@ -178,14 +180,15 @@
                </script> 
             </p:dialog>  
            <p:dialog id="addOpVenteDialog" appendToBody="false" dynamic="true" header="Nouvelle opération vente" widgetVar="addOpVenteWidget" resizable="false"  
-               showEffect="clip" hideEffect="fold">  
+               showEffect="clip" hideEffect="fold" width="100%" height="500">  
+               <p:scrollPanel mode="native">
                <h:form id="addForm">
                     <p:messages id="messages"/>
                     <h:panelGrid id="displayAdd" columns="2" cellpadding="4" width="100%">  
                         <h:outputLabel for="client">Client</h:outputLabel>  
                         <p:selectOneMenu id="client" value="#{opVenteController.newOpVente.client}" converter="#{clientConverter}" panelStyle="width:160px"  
                                          effect="fade" var="c" style="width:160px"  filter="true" filterMatchMode="contains" required="true">  
-                            <p:ajax update="ventes" listener="#{opVenteController.onClientSelect}"/>
+                            <p:ajax update="@form" listener="#{opVenteController.onClientSelect}"/>
                             <f:selectItem itemLabel="Choisir un client" itemValue="" />  
 			    <f:selectItems value="#{opVenteController.clients}" var="client" itemLabel="#{client.fullName}" itemValue="#{operateur}"/>  
 			    <p:column>  
@@ -226,6 +229,57 @@
                                 </h:panelGrid>  
                             </p:panel> 
                         </p:dataGrid>
+                        <h:outputLabel for="paiements">Paiement</h:outputLabel>  
+                        <h:panelGrid columns="2" id="paiements">
+                        <p:dataTable editable="true" value="#{opVenteController.paiements}" var="paiement">
+                            <p:column headerText="Montant" style="width:30%">
+                                <p:cellEditor>
+                                    <f:facet name="output"><h:outputText value="#{paiement.montant}" /></f:facet>
+                                    <f:facet name="input">
+                                        <p:inputText id="montant" value="#{paiement.montant}" required="true" requiredMessage="le champ montant est requis" converterMessage="le montant saisi n’a pas pu être interprété en tant que valeur monétaire.">
+                                            <f:convertNumber currencySymbol="D.T" maxFractionDigits="3" type="currency" />
+                                        </p:inputText>
+                                    </f:facet>
+                                </p:cellEditor>
+                            </p:column>
+                            <p:column headerText="TypePaiement" style="width:30%">  
+                                <p:cellEditor>  
+                                    <f:facet name="output">  
+                                        <h:outputText value="#{paiement.typePaiement.type}" />  
+                                    </f:facet>  
+                                    <f:facet name="input">  
+                                        <p:selectOneMenu value="#{paiement.typePaiement}" converter="#{typePaiementConverter}" panelStyle="width:160px" requiredMessage="Le champ type est requis" 
+                                                         effect="fade" var="t" style="width:160px"  filter="true" filterMatchMode="contains" required="true">  
+				           <f:selectItem itemLabel="Choisir un type de paiement" itemValue="" />  
+                                           <f:selectItems value="#{opVenteController.typesPaiement}" var="typePaiement" itemLabel="#{typePaiement.type}" itemValue="#{typePaiement}"/>  
+				           <p:column>  
+				               #{t.type}
+				           </p:column>  
+				        </p:selectOneMenu>  
+                                    </f:facet>  
+                                </p:cellEditor>  
+                            </p:column>  
+                            <p:column style="width:32px">
+                                <p:rowEditor />
+                            </p:column>
+                            <f:facet name="footer">
+                                <p:commandButton value="Ajouter Paiement" icon="iconAdd" action="#{opVenteController.addPaiement}"
+                                           update="@form">
+                                </p:commandButton>
+                            </f:facet>
+                        </p:dataTable>
+                        <h:panelGrid id="ficheClient" columns="2" cellpadding="10" rendered="#{opVenteController.displayFiche}">
+                           <f:facet name="header">
+                              Fiche Client
+                           </f:facet>
+                           <h:outputLabel for="impaye" value="Impayés"/>
+                           <h:outputText id="impaye" value="#{opVenteController.impaye}"/>
+                           <h:outputLabel for="avance" value="Avance"/>
+                           <h:outputText id="avance" value="#{opVenteController.avance}"/>
+                           <h:outputLabel for="montantSugg" value="Montant à payer"/>
+                           <h:outputText id="montantSugg" value="#{opVenteController.montantSugg}"/>
+                        </h:panelGrid>
+                        </h:panelGrid>
             		<f:facet name="footer">
                                 <div align="center">
                                     <p:commandButton value="Enregistrer" actionListener="#{opVenteController.saveNew}" icon="ui-icon-disk" process="@this :addForm:displayAdd" update="@(.ui-messages)" oncomplete="handleAddOpVenteRequest(xhr, status, args);"/>
@@ -233,6 +287,7 @@
                         </f:facet>
                     </h:panelGrid>  
                </h:form>
+               </p:scrollPanel>
                <script type="text/javascript">  
                     function handleAddOpVenteRequest(xhr, status, args) {  
                         if(args.validationFailed || !args.fail) {  

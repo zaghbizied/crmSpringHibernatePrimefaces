@@ -8,15 +8,19 @@ import com.crm.model.Achat;
 import com.crm.model.Client;
 import com.crm.model.NumTel;
 import com.crm.model.OpVente;
+import com.crm.model.PaiementClient;
 import com.crm.model.PrixClient;
 import com.crm.model.Produit;
+import com.crm.model.TypePaiement;
 import com.crm.model.Vente;
 import com.crm.service.AchatManager;
 import com.crm.service.ClientManager;
 import com.crm.service.NumTelManager;
 import com.crm.service.OpVenteManager;
+import com.crm.service.PaiementClientManager;
 import com.crm.service.PrixClientManager;
 import com.crm.service.ProduitManager;
+import com.crm.service.TypePaiementManager;
 import com.crm.service.VenteManager;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -30,6 +34,7 @@ import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
 import javax.faces.event.ActionEvent;
 import org.primefaces.context.RequestContext;
+import org.primefaces.event.RowEditEvent;
 import org.primefaces.model.LazyDataModel;
 import org.primefaces.model.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +57,8 @@ public class OpVenteController extends BasePage implements Serializable{
     private ClientManager clientManager;
     private PrixClientManager prixClientManager;
     private NumTelManager numTelManager;
+    private TypePaiementManager typePaiementManager;
+    private PaiementClientManager paiementClientManager;
     private List<Vente> ventes=new ArrayList<>();
     private List<Client> clients=new ArrayList<>();
     private List<Produit> produits=new ArrayList<>();
@@ -59,10 +66,26 @@ public class OpVenteController extends BasePage implements Serializable{
     private OpVente selectedOpVente;
     private OpVente newOpVente;
     private List<NumTel> numTels=new ArrayList<>();
+    private List<PaiementClient> paiements=new ArrayList<>();
+    private List<TypePaiement> typesPaiement=new ArrayList<>();
+    private boolean displayFiche;
+    private float impaye;
+    private float avance;
+    private float montantSugg;
     
     @Autowired
     public void setAchatManager(@Qualifier("achatManager")AchatManager achatManager) {
         this.achatManager = achatManager;
+    }
+    
+    @Autowired
+    public void setTypePaiementManager(@Qualifier("typePaiementManager")TypePaiementManager typePaiementManager) {
+        this.typePaiementManager = typePaiementManager;
+    }
+    
+    @Autowired
+    public void setPaiementClientManager(@Qualifier("paiementClientManager")PaiementClientManager paiementClientManager) {
+        this.paiementClientManager = paiementClientManager;
     }
 
     @Autowired
@@ -158,6 +181,54 @@ public class OpVenteController extends BasePage implements Serializable{
     public void setNumTels(List<NumTel> numTels) {
         this.numTels = numTels;
     }
+
+    public List<PaiementClient> getPaiements() {
+        return paiements;
+    }
+
+    public void setPaiements(List<PaiementClient> paiements) {
+        this.paiements = paiements;
+    }
+
+    public List<TypePaiement> getTypesPaiement() {
+        return typesPaiement;
+    }
+
+    public void setTypesPaiement(List<TypePaiement> typesPaiement) {
+        this.typesPaiement = typesPaiement;
+    }
+
+    public boolean isDisplayFiche() {
+        return displayFiche;
+    }
+
+    public void setDisplayFiche(boolean displayFiche) {
+        this.displayFiche = displayFiche;
+    }
+
+    public float getImpaye() {
+        return impaye;
+    }
+
+    public void setImpaye(float impaye) {
+        this.impaye = impaye;
+    }
+
+    public float getAvance() {
+        return avance;
+    }
+
+    public void setAvance(float avance) {
+        this.avance = avance;
+    }
+
+    public float getMontantSugg() {
+        return montantSugg;
+    }
+
+    public void setMontantSugg(float montantSugg) {
+        this.montantSugg = montantSugg;
+    }
     
     @PostConstruct
     public void init(){
@@ -173,6 +244,9 @@ public class OpVenteController extends BasePage implements Serializable{
         opVentes.setRowCount(opVenteManager.countByDate(new Date(System.currentTimeMillis())));
         clients=clientManager.getAll();
         searchObject=new OpVente();
+        searchObject.setDateVente(new Date(System.currentTimeMillis()));
+        typesPaiement=typePaiementManager.getAll();
+        displayFiche=false;
     }
    
     public void search() {
@@ -331,6 +405,42 @@ public class OpVenteController extends BasePage implements Serializable{
                 }
             }
         }
+        for(PaiementClient pc:paiements){
+            float montant=pc.getMontant()+avance;
+            pc.setMontant(montant);
+            List<OpVente> lst=opVenteManager.getNonPayedByClient(pc.getClient());
+            Collections.sort(lst, new Comparator<OpVente>() {
+                @Override
+                public int compare(OpVente op1, OpVente op2) {
+                    return op1.getDateVente().compareTo(op2.getDateVente());
+                }
+            });
+            for(OpVente op:lst){
+                float montantRestant=op.getMontant()-op.getMontantPaye();
+                if(montantRestant<=montant){
+                    montant=montant-montantRestant;
+                    op.setMontantPaye(op.getMontant());
+                    opVenteManager.save(op);
+                }
+                else if(montant>0){
+                    op.setMontantPaye(op.getMontantPaye()+montant);
+                    opVenteManager.save(op);
+                    montant=0;
+                    break;
+                }
+                else
+                    break;
+            }
+            if(montant>0)pc.setAvance(montant);
+            PaiementClient p=paiementClientManager.getPaiementAvecAvance(pc.getClient());
+            if(p!=null){
+                p.setAvance(0);
+                paiementClientManager.save(p);
+            }
+            pc.setDatePaiement(new Date(System.currentTimeMillis()));
+            paiementClientManager.save(pc);
+        }
+            
     }
     
     public void onClientSelect(){
@@ -340,6 +450,8 @@ public class OpVenteController extends BasePage implements Serializable{
         for(NumTel n:numTelManager.getByClient(c))
             numTels.add(n);
         System.out.println("numTemls size "+numTels);
+        displayFiche=true;
+        impaye=0;
         if(c!=null){
             List<PrixClient> pcs=prixClientManager.getByClient(c);
             List<Vente> tmp=new ArrayList<>();
@@ -357,12 +469,22 @@ public class OpVenteController extends BasePage implements Serializable{
                 for(Achat a:achats){
                     dispo=dispo+a.getQuantite()-a.getVendu();
                 }
+                
                 v.setDisponible(dispo);
                 v.setMontant(v.getQuantite()*v.getPrixUnit());
-                if(dispo>0)v.setDisable(false);
-                else v.setDisable(true);
+                /*if(dispo>0)v.setDisable(false);
+                else v.setDisable(true);*/
             }
             ventes=tmp;
+            for(OpVente op:opVenteManager.getNonPayedByClient(c))
+                impaye=impaye+op.getMontant()-op.getMontantPaye();
+            
+            avance=paiementClientManager.getAvance(c);
+            if(avance>0){
+                montantSugg=impaye-avance;
+            }
+            else
+                montantSugg=impaye;
         }
         
     }
@@ -382,11 +504,11 @@ public class OpVenteController extends BasePage implements Serializable{
                     dispo=dispo+a.getQuantite()-a.getVendu();
                 }
                 v.setDisponible(dispo);
-                if(dispo>0)v.setDisable(false);
-                else v.setDisable(true);
+                /*if(dispo>0)v.setDisable(false);
+                else v.setDisable(true);*/
             }
             else{
-                    v.setDisable(true);
+                    //v.setDisable(true);
                     v.setDisponible(0);
             }
             v.setMontant(v.getQuantite()*v.getPrixUnit());
@@ -406,11 +528,11 @@ public class OpVenteController extends BasePage implements Serializable{
                         dispo=dispo+a.getQuantite()-a.getVendu();
                     }
                     tmp.setDisponible(dispo);
-                    if(dispo>0)tmp.setDisable(false);
-                    else tmp.setDisable(true);
+                    /*if(dispo>0)tmp.setDisable(false);
+                    else tmp.setDisable(true);*/
                 }
                 else{
-                    tmp.setDisable(true);
+                    //tmp.setDisable(true);
                     tmp.setDisponible(0);
                 }
                 ventes.add(tmp);
@@ -429,6 +551,7 @@ public class OpVenteController extends BasePage implements Serializable{
     public void prepareAdd(){
        numTels=new ArrayList<>();
        ventes=new ArrayList<>();
+       paiements=new ArrayList<>();
        for(Produit p:produits){
             Vente tmp=new Vente();
             tmp.setProduit(p);
@@ -442,11 +565,11 @@ public class OpVenteController extends BasePage implements Serializable{
                     dispo=dispo+a.getQuantite()-a.getVendu();
                 }
                 tmp.setDisponible(dispo);
-                if(dispo>0)tmp.setDisable(false);
-                else tmp.setDisable(true);
+                /*if(dispo>0)tmp.setDisable(false);
+                else tmp.setDisable(true);*/
             }
             else{
-                tmp.setDisable(true);
+                //tmp.setDisable(true);
                 tmp.setDisponible(0);
             }
             ventes.add(tmp);
@@ -647,5 +770,11 @@ public class OpVenteController extends BasePage implements Serializable{
         Vente tmp=ventes.get(index);
         tmp.setMontant(tmp.getQuantite()*tmp.getPrixUnit());
         ventes.set(index,tmp);
+    }
+    
+    public void addPaiement(){
+        PaiementClient pc=new PaiementClient();
+        if(newOpVente.getClient()!=null)pc.setClient(newOpVente.getClient());
+        paiements.add(pc);
     }
 }

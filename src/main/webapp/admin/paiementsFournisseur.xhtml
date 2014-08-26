@@ -63,6 +63,14 @@
                             </f:facet>
                             <h:outputText value="#{paiementFournisseur.montant}" />
                         </p:column>
+                        <p:column style="text-align:center">
+                            <f:facet name="header">
+                                <p:column sortBy="client">
+                                    <h:outputText value="Type de paiement" />
+                                </p:column>
+                            </f:facet>
+                            <h:outputText value="#{paiementFournisseur.typePaiement.type}" />
+                        </p:column>
                         <f:facet name="header">
                             <div align="left">
                                <p:commandButton value="Nouveau" icon="iconAdd" action="#{paiementFournisseurController.prepareAdd}" process="@this :form:paiementFournisseurs"
@@ -102,6 +110,15 @@
                             <p:inputText id="montant" value="#{paiementFournisseurController.newPaiementFournisseur.montant}" required="true" requiredMessage="le champ montant est requis" converterMessage="le montant saisi n’a pas pu être interprété en tant que valeur monétaire.">
                                 <f:convertNumber currencySymbol="D.T" maxFractionDigits="3" type="currency" />
                             </p:inputText>
+                            <h:outputLabel for="typePaiement" value="Type de paiement"/>
+                            <p:selectOneMenu id="typePaiement" value="#{paiementFournisseurController.newPaiementFournisseur.typePaiement}" converter="#{typePaiementConverter}" panelStyle="width:160px" requiredMessage="Le champ type est requis" 
+                                   effect="fade" var="t" style="width:160px"  filter="true" filterMatchMode="contains" required="true">  
+			        <f:selectItem itemLabel="Choisir un type de paiement" itemValue="" />  
+                                <f:selectItems value="#{paiementFournisseurController.typesPaiement}" var="typePaiement" itemLabel="#{typePaiement.type}" itemValue="#{typePaiement}"/>  
+			        <p:column>  
+			           #{t.type}
+			        </p:column>  
+                            </p:selectOneMenu>
                             <f:facet name="footer">
                                 <div align="center">
                                     <p:commandButton icon="ui-icon-disk" value="Enregister" update="messages" action="#{paiementFournisseurController.saveNew}" oncomplete="handleSubmitRequest(xhr, status, args, 'addPaiementFournisseurDialog');" />

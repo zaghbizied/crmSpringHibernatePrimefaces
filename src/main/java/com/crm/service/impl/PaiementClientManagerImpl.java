@@ -4,6 +4,7 @@ package com.crm.service.impl;
 import com.crm.dao.PaiementClientDao;
 import com.crm.model.Client;
 import com.crm.model.PaiementClient;
+import com.crm.model.TypePaiement;
 import com.crm.service.PaiementClientManager;
 import java.util.Date;
 import java.util.List;
@@ -77,5 +78,15 @@ public class PaiementClientManagerImpl extends GenericManagerImpl<PaiementClient
     @Override
     public List<PaiementClient> getAfterDate(Date date) {
         return paiementClientDao.getAfterDate(date);
+    }
+
+    @Override
+    public List<PaiementClient> getByType(TypePaiement type) {
+        return paiementClientDao.getByType(type);
+    }
+
+    @Override
+    public List<PaiementClient> getAfterDateByType(Date date, TypePaiement type) {
+        return paiementClientDao.getAfterDateByType(date, type);
     }
 }

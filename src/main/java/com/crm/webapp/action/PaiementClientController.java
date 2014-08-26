@@ -7,9 +7,11 @@ package com.crm.webapp.action;
 import com.crm.model.Client;
 import com.crm.model.OpVente;
 import com.crm.model.PaiementClient;
+import com.crm.model.TypePaiement;
 import com.crm.service.ClientManager;
 import com.crm.service.OpVenteManager;
 import com.crm.service.PaiementClientManager;
+import com.crm.service.TypePaiementManager;
 import java.io.Serializable;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -37,10 +39,12 @@ public class PaiementClientController extends BasePage implements Serializable{
     private LazyDataModel<PaiementClient> paiementsClient;
     private PaiementClient newPaiementClient;
     private PaiementClientManager paiementClientManager;
+    private TypePaiementManager typePaiementManager;
     private ClientManager clientManager;
     private OpVenteManager opVenteManager;
     private PaiementClient searchObject;
     private List<Client> clients=new ArrayList<>();
+    private List<TypePaiement> typesPaiement=new ArrayList<>();
     private boolean displayFiche;
     private float impaye;
     private float avance;
@@ -60,6 +64,11 @@ public class PaiementClientController extends BasePage implements Serializable{
     @Autowired
     public void setOpVenteManager(@Qualifier("opVenteManager")OpVenteManager opVenteManager) {
         this.opVenteManager = opVenteManager;
+    }
+    
+    @Autowired
+    public void setTypePaiementManager(@Qualifier("typePaiementManager")TypePaiementManager typePaiementManager) {
+        this.typePaiementManager = typePaiementManager;
     }
     
     public void search() throws ParseException{
@@ -129,6 +138,7 @@ public class PaiementClientController extends BasePage implements Serializable{
         };
         paiementsClient.setRowCount(paiementClientManager.countByDate(searchObject.getDatePaiement()));
         clients=clientManager.getAll();
+        typesPaiement=typePaiementManager.getAll();
     }
     
     public void saveNew(){
@@ -255,5 +265,13 @@ public class PaiementClientController extends BasePage implements Serializable{
 
     public void setMontantSugg(float montantSugg) {
         this.montantSugg = montantSugg;
+    }
+
+    public List<TypePaiement> getTypesPaiement() {
+        return typesPaiement;
+    }
+
+    public void setTypesPaiement(List<TypePaiement> typesPaiement) {
+        this.typesPaiement = typesPaiement;
     }
 }

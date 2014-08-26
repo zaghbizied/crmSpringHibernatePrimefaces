@@ -24,5 +24,6 @@
         <mapping class="com.crm.model.Fournisseur"/>
         <mapping class="com.crm.model.Caisse"/>
         <mapping class="com.crm.model.PrelevementCaisse"/>
+        <mapping class="com.crm.model.TypePaiement"/>
     </session-factory>
 </hibernate-configuration>

@@ -23,15 +23,23 @@
                     <p:row>  
                         <p:column style="font-weight: bold;">Montant initial</p:column>  
                         <p:column>#{caisseController.montantInitial}</p:column>  
-                    </p:row>  
-                    <p:row>  
-                        <p:column style="font-weight: bold;">Paiements Clients</p:column>  
-                        <p:column>#{caisseController.paiementsClients}</p:column>  
-                    </p:row>  
+                    </p:row>
                     <p:row>  
                         <p:column style="font-weight: bold;">Paiements Fournisseurs</p:column>  
-                        <p:column>#{caisseController.paiementsFournisseurs}</p:column>  
-                    </p:row>  
+                        <p:column>
+                            <p:dataList value="#{caisseController.pfByType}" var="typeF" type="definition">
+                                #{typeF.type.type} : #{typeF.montant}
+                            </p:dataList>
+                        </p:column>  
+                    </p:row>
+                    <p:row>  
+                        <p:column style="font-weight: bold;">Paiements Clients</p:column>  
+                        <p:column>
+                            <p:dataList value="#{caisseController.pcByType}" var="typeC" type="definition">
+                                #{typeC.type.type} : #{typeC.montant}
+                            </p:dataList>
+                        </p:column>  
+                    </p:row>
                     <p:row>  
                         <p:column style="font-weight: bold;">Prélèvements Caisse</p:column>  
                         <p:column>#{caisseController.prelevementsCaisse}</p:column>  

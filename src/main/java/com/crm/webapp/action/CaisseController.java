@@ -6,14 +6,19 @@ package com.crm.webapp.action;
 
 import com.crm.model.Caisse;
 import com.crm.model.PaiementClient;
+import com.crm.model.PaiementByType;
 import com.crm.model.PaiementFournisseur;
 import com.crm.model.PrelevementCaisse;
+import com.crm.model.TypePaiement;
 import com.crm.service.CaisseManager;
 import com.crm.service.PaiementClientManager;
 import com.crm.service.PaiementFournisseurManager;
 import com.crm.service.PrelevementCaisseManager;
+import com.crm.service.TypePaiementManager;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -31,17 +36,26 @@ public class CaisseController extends BasePage implements Serializable{
     private PrelevementCaisseManager prelevementCaisseManager;
     private PaiementClientManager paiementClientManager;
     private PaiementFournisseurManager paiementFournisseurManager;
+    private TypePaiementManager typePaiementManager;
     private float montantInitial;
     private float paiementsClients;
     private float paiementsFournisseurs;
+    private List<PaiementByType> pcByType=new ArrayList<>();
+    private List<PaiementByType> pfByType=new ArrayList<>();
     private float prelevementsCaisse;
     private float montantCaisse;
     private float prelevement;
     private float reste;
+    private List<TypePaiement> types=new ArrayList<>();
     
     @Autowired
     public void setCaisseManager(@Qualifier("caisseManager")CaisseManager caisseManager) {
         this.caisseManager = caisseManager;
+    }
+    
+    @Autowired
+    public void setTypePaiementManager(@Qualifier("typePaiementManager")TypePaiementManager typePaiementManager) {
+        this.typePaiementManager = typePaiementManager;
     }
 
     @Autowired
@@ -114,6 +128,30 @@ public class CaisseController extends BasePage implements Serializable{
     public void setReste(float reste) {
         this.reste = reste;
     }
+
+    public List<TypePaiement> getTypes() {
+        return types;
+    }
+
+    public void setTypes(List<TypePaiement> types) {
+        this.types = types;
+    }
+
+    public List<PaiementByType> getPcByType() {
+        return pcByType;
+    }
+
+    public void setPcByType(List<PaiementByType> pcByType) {
+        this.pcByType = pcByType;
+    }
+
+    public List<PaiementByType> getPfByType() {
+        return pfByType;
+    }
+
+    public void setPfByType(List<PaiementByType> pfByType) {
+        this.pfByType = pfByType;
+    }
     
     @PostConstruct
     public void init(){
@@ -122,10 +160,31 @@ public class CaisseController extends BasePage implements Serializable{
         prelevementsCaisse=0;
         Caisse lastRecord=caisseManager.getLastOne();
         montantInitial=lastRecord.getMontant();
-        for(PaiementClient pc:paiementClientManager.getAfterDate(lastRecord.getDateCloture()))
-            paiementsClients=paiementsClients+pc.getMontant();
-        for(PaiementFournisseur pf:paiementFournisseurManager.getAfterDate(lastRecord.getDateCloture()))
-            paiementsFournisseurs=paiementsFournisseurs+pf.getMontant();
+        types=typePaiementManager.getAll();
+        for(TypePaiement tp:types){
+            float montant_pc=0;
+            List<PaiementClient> pcs=paiementClientManager.getAfterDateByType(lastRecord.getDateCloture(), tp);
+            for(PaiementClient pc:pcs){
+                System.out.println("client adding "+pc.getMontant());
+                montant_pc=montant_pc+pc.getMontant();
+            }  
+            PaiementByType tmp=new PaiementByType();
+            tmp.setMontant(montant_pc);
+            tmp.setType(tp);
+            System.out.println("adding to lst_pc_type "+tmp.getType().getType()+" "+tmp.getMontant());
+            pcByType.add(tmp);
+            paiementsClients=paiementsClients+montant_pc;
+            float montant_pf=0;
+            List<PaiementFournisseur> pfs=paiementFournisseurManager.getAfterDateByType(lastRecord.getDateCloture(), tp);
+            for(PaiementFournisseur pf:pfs){
+                System.out.println("fournisseur adding "+pf.getMontant());
+                montant_pf=montant_pf+pf.getMontant();
+            }
+            tmp.setMontant(montant_pf);
+            System.out.println("adding to lst_pf_type "+tmp.getType().getType()+" "+tmp.getMontant());
+            paiementsFournisseurs=paiementsFournisseurs+montant_pf;
+            pfByType.add(tmp);
+        }
         for(PrelevementCaisse pc:prelevementCaisseManager.getAfterDate(lastRecord.getDateCloture()))
             prelevementsCaisse=prelevementsCaisse+pc.getMontant();
         montantCaisse=montantInitial+paiementsClients-paiementsFournisseurs-prelevementsCaisse;

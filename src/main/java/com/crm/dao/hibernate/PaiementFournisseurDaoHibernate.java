@@ -2,8 +2,8 @@ package com.crm.dao.hibernate;
 
 import com.crm.dao.PaiementFournisseurDao;
 import com.crm.model.Fournisseur;
-import com.crm.model.OpAchat;
 import com.crm.model.PaiementFournisseur;
+import com.crm.model.TypePaiement;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -159,5 +159,17 @@ public class PaiementFournisseurDaoHibernate extends GenericDaoHibernate<Paiemen
     public int countAll() {
         Criteria crit = getSession().createCriteria(PaiementFournisseur.class);
         return ((Number) crit.setProjection(Projections.rowCount()).uniqueResult()).intValue();
+    }
+
+    @Override
+    public List<PaiementFournisseur> getByType(TypePaiement type) {
+        Criteria crit = getSession().createCriteria(PaiementFournisseur.class);
+        crit.add(Restrictions.eq("typePaiement", type));
+        return crit.list();
+    }
+
+    @Override
+    public List<PaiementFournisseur> getAfterDateByType(Date date, TypePaiement type) {
+        return  getSession().createCriteria(PaiementFournisseur.class).add(Restrictions.eq("typePaiement", type)).add(Restrictions.between("datePaiement", date, new Date(System.currentTimeMillis()))).list();
     }
 }

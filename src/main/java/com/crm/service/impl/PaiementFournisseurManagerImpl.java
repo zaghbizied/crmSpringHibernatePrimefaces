@@ -4,6 +4,7 @@ package com.crm.service.impl;
 import com.crm.dao.PaiementFournisseurDao;
 import com.crm.model.Fournisseur;
 import com.crm.model.PaiementFournisseur;
+import com.crm.model.TypePaiement;
 import com.crm.service.PaiementFournisseurManager;
 import java.util.Date;
 import java.util.List;
@@ -77,5 +78,15 @@ public class PaiementFournisseurManagerImpl extends GenericManagerImpl<PaiementF
     @Override
     public int countAll() {
         return paiementFournisseurDao.countAll();
+    }
+
+    @Override
+    public List<PaiementFournisseur> getByType(TypePaiement type) {
+        return paiementFournisseurDao.getByType(type);
+    }
+
+    @Override
+    public List<PaiementFournisseur> getAfterDateByType(Date date, TypePaiement type) {
+        return paiementFournisseurDao.getAfterDateByType(date, type);
     }
 }

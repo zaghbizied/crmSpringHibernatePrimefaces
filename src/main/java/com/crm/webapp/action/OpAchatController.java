@@ -7,15 +7,21 @@ package com.crm.webapp.action;
 import com.crm.model.Achat;
 import com.crm.model.Fournisseur;
 import com.crm.model.OpAchat;
+import com.crm.model.PaiementFournisseur;
 import com.crm.model.PrixFournisseur;
 import com.crm.model.Produit;
+import com.crm.model.TypePaiement;
 import com.crm.service.AchatManager;
 import com.crm.service.FournisseurManager;
 import com.crm.service.OpAchatManager;
+import com.crm.service.PaiementFournisseurManager;
 import com.crm.service.PrixFournisseurManager;
 import com.crm.service.ProduitManager;
+import com.crm.service.TypePaiementManager;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +48,8 @@ public class OpAchatController extends BasePage implements Serializable{
     private ProduitManager produitManager;
     private FournisseurManager fournisseurManager;
     private PrixFournisseurManager prixFournisseurManager;
+    private TypePaiementManager typePaiementManager;
+    private PaiementFournisseurManager paiementFournisseurManager;
     private List<Achat> achats;
     private List<Produit> produits=new ArrayList<>();
     private List<Fournisseur> fournisseurs=new ArrayList<>();
@@ -49,6 +57,12 @@ public class OpAchatController extends BasePage implements Serializable{
     private OpAchat selectedOpAchat;
     private OpAchat newOpAchat;
     private Achat newAchat;
+    private List<PaiementFournisseur> paiements=new ArrayList<>();
+    private List<TypePaiement> typesPaiement=new ArrayList<>();
+    private boolean displayFiche;
+    private float impaye;
+    private float avance;
+    private float montantSugg;
     
     @Autowired
     public void setPrixFournisseurManager(@Qualifier("prixFournisseurManager")PrixFournisseurManager prixFournisseurManager) {
@@ -73,6 +87,16 @@ public class OpAchatController extends BasePage implements Serializable{
     @Autowired
     public void setProduitManager(@Qualifier("produitManager")ProduitManager produitManager) {
         this.produitManager = produitManager;
+    }
+    
+    @Autowired
+    public void setTypePaiementManager(@Qualifier("typePaiementManager")TypePaiementManager typePaiementManager) {
+        this.typePaiementManager = typePaiementManager;
+    }
+    
+    @Autowired
+    public void setPaiementFournisseurManager(@Qualifier("paiementFournisseurManager")PaiementFournisseurManager paiementFournisseurManager) {
+        this.paiementFournisseurManager = paiementFournisseurManager;
     }
     
     public Achat getNewAchat() {
@@ -139,6 +163,54 @@ public class OpAchatController extends BasePage implements Serializable{
         this.fournisseurs = fournisseurs;
     }
     
+    public List<PaiementFournisseur> getPaiements() {
+        return paiements;
+    }
+
+    public void setPaiements(List<PaiementFournisseur> paiements) {
+        this.paiements = paiements;
+    }
+
+    public List<TypePaiement> getTypesPaiement() {
+        return typesPaiement;
+    }
+
+    public void setTypesPaiement(List<TypePaiement> typesPaiement) {
+        this.typesPaiement = typesPaiement;
+    }
+
+    public boolean isDisplayFiche() {
+        return displayFiche;
+    }
+
+    public void setDisplayFiche(boolean displayFiche) {
+        this.displayFiche = displayFiche;
+    }
+
+    public float getImpaye() {
+        return impaye;
+    }
+
+    public void setImpaye(float impaye) {
+        this.impaye = impaye;
+    }
+
+    public float getAvance() {
+        return avance;
+    }
+
+    public void setAvance(float avance) {
+        this.avance = avance;
+    }
+
+    public float getMontantSugg() {
+        return montantSugg;
+    }
+
+    public void setMontantSugg(float montantSugg) {
+        this.montantSugg = montantSugg;
+    }
+    
     @PostConstruct
     public void init(){
         searchObject=new OpAchat();
@@ -154,6 +226,8 @@ public class OpAchatController extends BasePage implements Serializable{
                 }
         };
         opAchats.setRowCount(opAchatManager.countByDate(new Date(System.currentTimeMillis())));
+        typesPaiement=typePaiementManager.getAll();
+        displayFiche=false;
     }
    
     public void search() {
@@ -237,10 +311,47 @@ public class OpAchatController extends BasePage implements Serializable{
                 achatManager.save(a);
             }
         }
+        for(PaiementFournisseur pc:paiements){
+            montant=pc.getMontant()+avance;
+            pc.setMontant(montant);
+            List<OpAchat> lst=opAchatManager.getNonPayedByFournisseur(pc.getFournisseur());
+            Collections.sort(lst, new Comparator<OpAchat>() {
+                @Override
+                public int compare(OpAchat op1, OpAchat op2) {
+                    return op1.getDateAchat().compareTo(op2.getDateAchat());
+                }
+            });
+            for(OpAchat op:lst){
+                float montantRestant=op.getMontant()-op.getMontantPaye();
+                if(montantRestant<=montant){
+                    montant=montant-montantRestant;
+                    op.setMontantPaye(op.getMontant());
+                    opAchatManager.save(op);
+                }
+                else if(montant>0){
+                    op.setMontantPaye(op.getMontantPaye()+montant);
+                    opAchatManager.save(op);
+                    montant=0;
+                    break;
+                }
+                else
+                    break;
+            }
+            if(montant>0)pc.setAvance(montant);
+            PaiementFournisseur p=paiementFournisseurManager.getPaiementAvecAvance(pc.getFournisseur());
+            if(p!=null){
+                p.setAvance(0);
+                paiementFournisseurManager.save(p);
+            }
+            pc.setDatePaiement(new Date(System.currentTimeMillis()));
+            paiementFournisseurManager.save(pc);
+        }
     }
     
     public void onFournisseurSelect(){
         Fournisseur c=newOpAchat.getFournisseur();
+        displayFiche=true;
+        impaye=0;
         if(c!=null){
             List<PrixFournisseur> pcs=prixFournisseurManager.getByFournisseur(c);
             List<Achat> tmp=new ArrayList<>();
@@ -256,6 +367,15 @@ public class OpAchatController extends BasePage implements Serializable{
                 
             }
             achats=tmp;
+            for(OpAchat op:opAchatManager.getNonPayedByFournisseur(c))
+                impaye=impaye+op.getMontant()-op.getMontantPaye();
+            
+            avance=paiementFournisseurManager.getAvance(c);
+            if(avance>0){
+                montantSugg=impaye-avance;
+            }
+            else
+                montantSugg=impaye;
         }
     }
     
@@ -329,5 +449,11 @@ public class OpAchatController extends BasePage implements Serializable{
         Achat tmp=achats.get(index);
         tmp.setMontant(tmp.getQuantite()*tmp.getPrixUnit());
         achats.set(index,tmp);
+    }
+    
+    public void addPaiement(){
+        PaiementFournisseur pc=new PaiementFournisseur();
+        if(newOpAchat.getFournisseur()!=null)pc.setFournisseur(newOpAchat.getFournisseur());
+        paiements.add(pc);
     }
 }

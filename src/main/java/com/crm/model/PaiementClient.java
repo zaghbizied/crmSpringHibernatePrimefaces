@@ -39,6 +39,7 @@ public class PaiementClient extends BaseObject implements Serializable{
     private float montant;
     private float avance;
     private Client client;
+    private TypePaiement typePaiement;
 
     @Id @GeneratedValue(strategy=IDENTITY) @DocumentId    
     public Long getId() {
@@ -88,6 +89,16 @@ public class PaiementClient extends BaseObject implements Serializable{
 
     public void setAvance(float avance) {
         this.avance = avance;
+    }
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="typePaiement")
+    public TypePaiement getTypePaiement() {
+        return typePaiement;
+    }
+
+    public void setTypePaiement(TypePaiement typePaiement) {
+        this.typePaiement = typePaiement;
     }
     
     @Override
